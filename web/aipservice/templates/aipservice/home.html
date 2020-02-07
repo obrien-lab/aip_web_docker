@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block css %}
+<style>
+.error {
+    color: red;
+}
+</style>
+{% endblock %}
+{% block content %}
+<h2>Submit a new job</h2>
+<form action="{% url 'home' %}" method="post" enctype="multipart/form-data" class="form">
+  {% csrf_token %}
+  <div class="form-group">
+    <label>Alignment mode</label>
+    <div class="form-check">
+      <input class="form-check-input" type="radio"  name="alignment_type" value="genome" checked> 
+      <label class="form-check-label">Genome</label> 
+      <span class="form-text text-muted">This option is preferable for spaner genomes (e.g. E.coli, S. cerevisiae) with simple gene structures with fewer introns and isoforms.</span>
+    </div>
+    <span class="error">{{form.alignment_type.errors}}</span>  
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="alignment_type" value="transcriptome"> 
+      <label class="form-check-label">Transcriptome</label>
+      <span class="form-text text-muted">This option is preferable for complex genomes like mouse and human. The alignment file contains reads directly aligned to gene transcripts.</span>
+    </div>        
+  </div>
+  <div class="form-group">
+    <label>BAM or SAM file</label>
+    <input type="file" class="form-contol" name="sam_file">
+    <span class="error">{{form.sam_file.errors}}</span>    
+    <span class="form-text text-muted">If a BAM file is submitted, it will be converted to a SAM file using SAMtools.</span>
+  </div>
+  <div class="form-group">
+    <label>Annotation file</label>
+    <input type="file" name="annotation_file">
+    <span class="error">{{form.annotation_file.errors}}</span>
+    <div class="form-text text-muted" id="genome-annotation">
+      <p>For genome, the annotation file could be in the following format:</p>
+      <table class="table table-bordered">
+        <thead>
+          <th>Gene name</th>
+          <th>Chromosome</th>
+          <th>Strand</th>
+          <th>CDS Length</th>
+          <th>Number of CDS regions</th>
+          <th>CDS Start 1</th>
+          <th>CDS End 1</th>
+          <th>CDS Start 2</th>
+          <th>CDS End 2</th>
+        </thead>
+        <tbody>
+          <tr>
+            <td>YAL008W</td>
+            <td>chrI</td>
+            <td>+</td>
+            <td>597</td>
+            <td>1</td>
+            <td>136914</td>
+            <td>137510</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>YBL087C</td>
+            <td>chrII</td>
+            <td>-</td>
+            <td>414</td>
+            <td>2</td>
+            <td>59822</td>
+            <td>60193</td>
+            <td>60698</td>
+            <td>60739</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Alternatively, a GFF file can also be given as input for annotations but the script is optimized for processing only GFF files for E. coli and S. cerevisiae.</p>
+    </div> 
+    <div class="form-text text-muted" id="trans-annotation" style="display: none">
+      <p>For transcriptome, the annotation file could be in the following format:</p>
+      <table class="table table-bordered">
+        <thead>
+          <th>Gene name</th>
+          <th>Start index</th>
+          <th>CDS Length</th>
+        </thead>
+        <tbody>
+          <tr>
+            <td>uc008jxs.1</td>
+            <td>79</td>
+            <td>1155</td>
+          </tr>
+          <tr>
+            <td>uc009fyo.2</td>
+            <td>1048</td>
+            <td>4023</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>FASTA file</label>
+    <input type="file" name="fasta_file">
+    <span class="error">{{form.fasta_file.errors}}</span>  
+  </div>
+  <div class="form-group">
+    <label>Fragment length: </label>
+    min<input type="number" name = "min_frag" value="20">nt, 
+    max<input type="number" name="max_frag" value="35">nt
+    <span class="error">{{form.min_frag.errors}}</span>  
+    <span class="error">{{form.max_frag.errors}}</span>  
+  </div>
+  <div class="form-group">
+    <label>Quantify reads from </label>
+    <span><input type="radio" name="three_prime" value="false" checked> 5' or <input type="radio" name="three_prime" value="true"> 3' end</span>
+    <span class="error">{{form.three_prime.errors}}</span>  
+  </div>
+  <div class="form-group">
+    <label class="control-label">Overlap</label>
+    <input type="number" name="overlap" value="0" .col-lg-1> nt
+    <span class="error">{{form.overlap.errors}}</span>  
+    <p class="form-text text-muted"> Number of nucleotides beyond the CDS region of a gene which are to be avoided to overlap with another gene. </p>
+  </div>
+  <div class="form-group">
+    <label>Thresholds </label>
+    <p>Minimum average number of reads per codon for filtering genes <input type="number" name="threshold_avg_reads"  value="1"></p>
+    <span class="error">{{form.threshold_avg_reads.errors}}</span>  
+    <p>Minimum percentage of genes with the most probable offset for assigning a unique offset <input type="number" name="threshold_gene_pct" value="70">% </p>
+    <span class="error">{{form.threshold_gene_pct.errors}}</span>  
+    <p>Minimum ratio between the average reads in the second, third and fourth codon and the reads in the first codon <input type="number" name="threshold_start_codon" value="5"></p>
+    <span class="error">{{form.threshold_start_codon.errors}}</span>  
+  </div>
+  <div class="form-group">
+    <label>Filter file (optional)</label>
+    <input type="file" name="filter_file">
+    <span class="error">{{form.filter_file.errors}}</span>  
+    <p class="form-text text-muted">The filter file consists of a list of genes deliminated by tab.</p>
+    <div class="form-check">
+      <input type="radio" name="include" value="true" checked> 
+      <label>Include</label> 
+      <span class="form-text text-muted">Only the genes in the filter file will be inlcuded.</span>
+    </div>
+    <div class="form-check">
+      <input type="radio" name="include" value="false"> 
+      <label>Exclude</label> 
+      <span class="form-text text-muted">Genes in the filter file will be excluded.</span>
+    </div>
+    <span class="error">{{form.include.errors}}</span>  
+  </div>
+  <div class="form-group">
+    <label>Generate A-site read density profiles</label>
+    <span><input type="radio" name="get_asite" value="true" checked> Yes <input type="radio" name="get_asite" value="false"> No </span>
+    <span class="error">{{form.get_asite.errors}}</span>  
+    <div id="offset-file">
+      <label>Offset file (optional)</label>
+      <input type="file" name="offset_file">
+      <span class="error">{{form.offset_file.errors}}</span>  
+      <span class="form-text text-muted">Users can upload an offset file which contains offsets in rows of different fragment sizes and columns in frame 0,1 and 2. The first column should be fragment size. If no offset file is provided, the offset table generated from the Asite-IP algorithm will be used. </span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Email <input type="email" name="email"></label>
+    <span class="error">{{form.email.errors}}</span>
+    <p class="form-text text-muted"></p>
+  </div>
+  <div class="form-group"> 
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  $('input[type=radio][name=alignment_type]').change(function(){
+      if (this.value == "genome") {
+          $('#genome-annotation').show();
+          $('#trans-annotation').hide();
+      } else {
+          $('#genome-annotation').hide();
+          $('#trans-annotation').show();
+      }
+  });
+
+  $('input[type=radio][name=get_asite]').change(function(){
+      if (this.value == "true") {
+          $('#offset-file').show();
+      } else {
+          $('#offset-file').hide();
+      }
+  })
+</script>
+{% endblock %}
