@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('email', models.EmailField(blank=True, max_length=254, null=True)),
                 ('create_date', models.DateTimeField(auto_now_add=True)),
-                ('task_id', models.CharField(max_length=256)),
+                ('task_id', models.CharField(blank=True, max_length=256, null=True)),
                 ('status', models.CharField(max_length=10)),
                 ('sam_file', models.FileField(upload_to='input')),
                 ('annotation_file', models.FileField(upload_to='input')),

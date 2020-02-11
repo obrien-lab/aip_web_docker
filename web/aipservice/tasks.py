@@ -4,7 +4,8 @@ from celery import shared_task
 from .models import Job
 
 @shared_task
-def aip_task(sam_file, 
+def aip_task(job_id,
+            sam_file, 
             annotation_file, 
             fasta_file,
             offset_file,
@@ -20,7 +21,10 @@ def aip_task(sam_file,
             alignment_type = "genome",
             get_asite = False
             ):  
-
+    job = Job.objects.get(id = job_id)
+    job.status = "RUNNING"
+    job.save()
+    
     '''
     # If the alignment format is BAM, then we first convert to SAM format. Requires samtools to be installed.
     sam_file = processSamFile(folder, sam_file)
@@ -46,6 +50,6 @@ def aip_task(sam_file,
     offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_start_codon, threshold_gene_pct, three_prime)
     '''
     
-    job = Job.objects.get(task_id = aip_task.request.id)
+    job = Job.objects.get(id = job_id)
     job.status = "SUCCESS"
     job.save()

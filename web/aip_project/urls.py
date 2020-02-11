@@ -21,4 +21,5 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('aip/', include('aipservice.urls'))
-] + static(settings.MEDIA_ROOT, document_root=settings.MEDIA_ROOT)
+] + static(settings.STATIC_ROOT, document_root=settings.STATIC_ROOT)
+

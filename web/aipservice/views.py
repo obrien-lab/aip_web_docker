@@ -29,12 +29,15 @@ class HomeView(View):
 
         if form.is_valid():
             job = form.save(commit=False)
+            job.status = "PENDING"
+            job.save()
             
             offset_file = job.offset_file.path if job.offset_file else None
             
             filter_file = job.filter_file.path if job.filter_file else None 
                 
-            task = aip_task.delay(job.sam_file.path, 
+            task = aip_task.delay(job.id,
+                                job.sam_file.path, 
                                 job.annotation_file.path, 
                                 job.fasta_file.path,
                                 offset_file,
@@ -49,17 +52,15 @@ class HomeView(View):
                                 job.include,
                                 job.alignment_type,
                                 job.get_asite)
-            job.task_id = task.id
-            job.status = task.status
-            job.save()
-            return redirect('report', task_id = job.task_id)
+            
+            return redirect('report', job_id = job.id)
         else:
             context['form'] = form
             return render(request, 'aipservice/home.html', context)
     
 class ReportView(View):
-    def get(self, request, task_id):
-        job = get_object_or_404(Job, task_id=task_id)
+    def get(self, request, job_id):
+        job = get_object_or_404(Job, id=job_id)
         return render(request, 'aipservice/report.html', {"job": job})
     
 def get_results(request, task_id):

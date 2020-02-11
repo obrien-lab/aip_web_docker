@@ -18,9 +18,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '&i1b+#s1wm0x9*3p1xz1&m2p6jrom^t83-!36m@om3d21ksi_o'
+SECRET_KEY='5(15ds+i2+%ik6z&!yer+ga9m=e%jcqiz_5wszg)r-z!2--b2d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -76,11 +74,11 @@ WSGI_APPLICATION = 'aip_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'aip',
-        'USER': 'aipdb',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'default'),
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASS'],
+        'HOST': os.environ.get('DB_SERVICE', 'postgres'),
+        'PORT': os.environ['DB_PORT']
     }
 }
 
@@ -124,13 +122,17 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/files/'
 
+STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static'))
+if not os.path.exists(STATIC_ROOT):
+    os.makedirs(STATIC_ROOT)
+
 MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'files'))
 if not os.path.exists(MEDIA_ROOT):
     os.makedirs(MEDIA_ROOT)
 
 # celery
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'

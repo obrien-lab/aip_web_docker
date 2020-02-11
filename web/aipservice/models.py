@@ -5,7 +5,7 @@ class Job(models.Model):
     INPUT = 'input'
     email = models.EmailField(null=True, blank=True)
     create_date = models.DateTimeField(auto_now_add=True)
-    task_id = models.CharField(max_length=256)
+    task_id = models.CharField(max_length=256, null=True, blank=True)
     status = models.CharField(max_length=10)
     sam_file = models.FileField(upload_to=INPUT)
     annotation_file = models.FileField(upload_to=INPUT)

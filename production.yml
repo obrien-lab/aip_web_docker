@@ -10,17 +10,23 @@ services:
       - postgres:postgres
       - redis:redis
     volumes:
-      - web-static:/usr/src/app/static
+      - web-files:/files
     env_file: .env
     command: /usr/local/bin/gunicorn aip_project.wsgi:application -w 2 -b :8000
-
+  
+  celery:
+    build: ./web
+    command: celery -A aip_project worker -l info
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+  
   nginx:
     restart: always
     build: ./nginx/
     ports:
       - "80:80"
-    volumes:
-      - web-static:/www/static
     links:
       - web:web
 
@@ -37,10 +43,7 @@ services:
     image: redis:latest
     ports:
       - "6379"
-    volumes:
-      - redisdata:/data
 
 volumes:
   web-static:
   pgdata:
-  redisdata:
