@@ -9,3 +9,5 @@ COPY requirements.txt /opt/app/
 COPY . /opt/app/aip
 WORKDIR /opt/app
 RUN python -m pip install -r requirements.txt
+
+CMD ["/opt/app/aip/start-server.sh"]
