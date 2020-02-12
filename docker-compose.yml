@@ -10,15 +10,15 @@ services:
       - postgres:postgres
       - redis:redis
     volumes:
-      - web-files:/files
+      - ../input-files:/opt/app/aip/files
     env_file: .env
     environment:
       DEBUG: 'true'
-    command: bash -c "python manage.py migrate && /usr/local/bin/gunicorn aip_project.wsgi:application -w 2 -b :8000"
+    command: bash -c "cd aip && python manage.py migrate && /usr/local/bin/gunicorn aip_project.wsgi:application -w 2 -b :8000"
   
   celery:
     build: ./web
-    command: celery -A aip_project worker -l info
+    command: bash -c "cd aip && celery -A aip_project worker -l info"
     env_file: .env
     depends_on:
       - postgres
@@ -37,8 +37,6 @@ services:
     image: postgres:latest
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data/
 
   redis:
     restart: always
@@ -46,6 +44,4 @@ services:
     ports:
       - "6379:6379"
 
-volumes:
-  web-files:
-  pgdata:
+
