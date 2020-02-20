@@ -4,6 +4,8 @@ RUN python -m pip install --upgrade pip
 
 RUN mkdir -p /opt/app
 RUN mkdir -p /opt/app/aip
+RUN mkdir -p /files
+RUN mkdir -p /files/input
 
 COPY requirements.txt /opt/app/
 COPY . /opt/app/aip

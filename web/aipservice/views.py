@@ -13,18 +13,18 @@ from .models import Job
     
 FRAMES = 3
 
-class FileUploadForm(forms.ModelForm):
+class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ('sam_file', 'annotation_file', 'fasta_file', 'offset_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_asite', 'email', )
     
 class HomeView(View):
     def get(self, request):
-        form = FileUploadForm()
+        form = JobForm()
         return render(request, 'aipservice/home.html', { 'form': form })
     
     def post(self, request):
-        form = FileUploadForm(request.POST, request.FILES)
+        form = JobForm(request.POST, request.FILES)
         context = {}        
 
         if form.is_valid():

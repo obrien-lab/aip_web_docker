@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 SECRET_KEY=os.environ['SECRET_KEY']
@@ -120,13 +119,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-MEDIA_URL = '/files/'
 
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static'))
 if not os.path.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 
-MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'files'))
+MEDIA_ROOT = '/files/'
 if not os.path.exists(MEDIA_ROOT):
     os.makedirs(MEDIA_ROOT)
 

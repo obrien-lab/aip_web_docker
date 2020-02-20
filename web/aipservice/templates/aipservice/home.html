@@ -26,13 +26,13 @@
   </div>
   <div class="form-group">
     <label>BAM or SAM file</label>
-    <input type="file" class="form-contol" name="sam_file">
+    {{ form.sam_file }}
     <span class="error">{{form.sam_file.errors}}</span>    
     <span class="form-text text-muted">If a BAM file is submitted, it will be converted to a SAM file using SAMtools.</span>
   </div>
   <div class="form-group">
     <label>Annotation file</label>
-    <input type="file" name="annotation_file">
+    {{ form.annotation_file }}
     <span class="error">{{form.annotation_file.errors}}</span>
     <div class="form-text text-muted" id="genome-annotation">
       <p>For genome, the annotation file could be in the following format:</p>
@@ -100,7 +100,7 @@
   </div>
   <div class="form-group">
     <label>FASTA file</label>
-    <input type="file" name="fasta_file">
+      {{ form.fasta_file }}
     <span class="error">{{form.fasta_file.errors}}</span>  
   </div>
   <div class="form-group">
@@ -132,7 +132,7 @@
   </div>
   <div class="form-group">
     <label>Filter file (optional)</label>
-    <input type="file" name="filter_file">
+    {{ form.filter_file }}
     <span class="error">{{form.filter_file.errors}}</span>  
     <p class="form-text text-muted">The filter file consists of a list of genes deliminated by tab.</p>
     <div class="form-check">
@@ -153,7 +153,7 @@
     <span class="error">{{form.get_asite.errors}}</span>  
     <div id="offset-file">
       <label>Offset file (optional)</label>
-      <input type="file" name="offset_file">
+      {{ form.offset_file }}
       <span class="error">{{form.offset_file.errors}}</span>  
       <span class="form-text text-muted">Users can upload an offset file which contains offsets in rows of different fragment sizes and columns in frame 0,1 and 2. The first column should be fragment size. If no offset file is provided, the offset table generated from the Asite-IP algorithm will be used. </span>
     </div>
