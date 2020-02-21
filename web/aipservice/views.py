@@ -31,16 +31,12 @@ class HomeView(View):
             job = form.save(commit=False)
             job.status = "PENDING"
             job.save()
-            
-            offset_file = job.offset_file.path if job.offset_file else None
-            
-            filter_file = job.filter_file.path if job.filter_file else None 
                 
             task = aip_task.delay(job.id,
-                                job.sam_file.path, 
-                                job.annotation_file.path, 
-                                job.fasta_file.path,
-                                offset_file,
+                                job.sam_file, 
+                                job.annotation_file, 
+                                job.fasta_file,
+                                job.offset_file,
                                 job.min_frag, 
                                 job.max_frag, 
                                 job.three_prime, 
@@ -48,7 +44,7 @@ class HomeView(View):
                                 job.threshold_avg_reads,
                                 job.threshold_gene_pct,
                                 job.threshold_start_codon,
-                                filter_file,
+                                job.filter_file,
                                 job.include,
                                 job.alignment_type,
                                 job.get_asite)
@@ -63,7 +59,7 @@ class ReportView(View):
         job = get_object_or_404(Job, id=job_id)
         return render(request, 'aipservice/report.html', {"job": job})
     
-def get_results(request, task_id):
+def get_results(request, job_id):
     folder  = settings.MEDIA_ROOT
     filepath = os.path.join(folder, "Results_IP_algorithm.tab")
     block = ""

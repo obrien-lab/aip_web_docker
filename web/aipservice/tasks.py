@@ -23,12 +23,12 @@ def aip_task(job_id,
             ):  
     job = Job.objects.get(id = job_id)
     job.status = "RUNNING"
+    job.task_id = aip_task.request.id
     job.save()
-    
     '''
     # If the alignment format is BAM, then we first convert to SAM format. Requires samtools to be installed.
     sam_file = processSamFile(folder, sam_file)
-    
+
     annotation_file = processAnnotationFile(folder, annotation_file)
     
     if alignment_type == "genome" :
@@ -49,7 +49,6 @@ def aip_task(job_id,
 
     offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_start_codon, threshold_gene_pct, three_prime)
     '''
-    
     job = Job.objects.get(id = job_id)
     job.status = "SUCCESS"
     job.save()

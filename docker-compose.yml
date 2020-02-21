@@ -11,8 +11,9 @@ services:
       - redis:redis
     volumes:
       - ../aip-files:/files/input
-      - ./web/aipservice:/opt/app/aip/aipservice
+      - ./web:/opt/app/aip
     env_file: .env
+    command: bash -c "cd aip && python manage.py runserver 0.0.0.0:8000"
     environment:
       DEBUG: 'true'
   

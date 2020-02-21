@@ -5,6 +5,6 @@ from . import views
 urlpatterns = [
   path('', views.HomeView.as_view(), name='home'),
   path('report/<str:job_id>/', views.ReportView.as_view(), name='report'),
-  path('ajax/get_results/<str:task_id>/', views.get_results, name='get_results'),
+  path('ajax/get_results/<str:job_id>/', views.get_results, name='get_results'),
   path('download/<str:path>/', views.download, name='download')
 ]
