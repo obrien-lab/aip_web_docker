@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('create_date', models.DateTimeField(auto_now_add=True)),
                 ('task_id', models.CharField(blank=True, max_length=256, null=True)),
                 ('status', models.CharField(max_length=10)),
-                ('sam_file', models.FilePathField(path='/files/input')),
+                ('bam_file', models.FilePathField(path='/files/input')),
                 ('annotation_file', models.FilePathField(path='/files/input')),
                 ('fasta_file', models.FilePathField(path='/files/input')),
                 ('offset_file', models.FilePathField(blank=True, null=True, path='/files/input')),

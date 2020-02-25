@@ -7,7 +7,7 @@ class Job(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     task_id = models.CharField(max_length=256, null=True, blank=True)
     status = models.CharField(max_length=10)
-    sam_file = models.FilePathField(path = INPUT)
+    bam_file = models.FilePathField(path = INPUT)
     annotation_file = models.FilePathField(path = INPUT)
     fasta_file = models.FilePathField(path = INPUT)
     offset_file = models.FilePathField(path = INPUT, null=True, blank=True)

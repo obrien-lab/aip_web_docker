@@ -25,10 +25,9 @@
     </div>        
   </div>
   <div class="form-group">
-    <label>BAM or SAM file</label>
-    {{ form.sam_file }}
-    <span class="error">{{form.sam_file.errors}}</span>    
-    <span class="form-text text-muted">If a BAM file is submitted, it will be converted to a SAM file using SAMtools.</span>
+    <label>BAM file</label>
+    {{ form.bam_file }}
+    <span class="error">{{form.bam_file.errors}}</span>    
   </div>
   <div class="form-group">
     <label>Annotation file</label>

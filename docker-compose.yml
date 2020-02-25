@@ -13,11 +13,13 @@ services:
       - ../aip-files:/files/input
       - ./web:/opt/app/aip
     env_file: .env
-    command: bash -c "cd aip && python manage.py runserver 0.0.0.0:8000"
+    command: 
+      - /opt/app/aip/start-server.sh
     environment:
       DEBUG: 'true'
   
   celery:
+    restart: always
     build: ./web
     command: bash -c "cd aip && celery -A aip_project worker -l info"
     env_file: .env
@@ -45,6 +47,6 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
-
+    
 volumes:
   pgdata:

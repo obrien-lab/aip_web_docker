@@ -16,7 +16,7 @@ FRAMES = 3
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ('sam_file', 'annotation_file', 'fasta_file', 'offset_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_asite', 'email', )
+        fields = ('bam_file', 'annotation_file', 'fasta_file', 'offset_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_asite', 'email', )
     
 class HomeView(View):
     def get(self, request):
@@ -33,7 +33,7 @@ class HomeView(View):
             job.save()
                 
             task = aip_task.delay(job.id,
-                                job.sam_file, 
+                                job.bam_file, 
                                 job.annotation_file, 
                                 job.fasta_file,
                                 job.offset_file,

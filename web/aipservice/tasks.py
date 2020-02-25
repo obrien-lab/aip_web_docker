@@ -5,7 +5,7 @@ from .models import Job
 
 @shared_task
 def aip_task(job_id,
-            sam_file, 
+            bam_file, 
             annotation_file, 
             fasta_file,
             offset_file,
@@ -25,10 +25,14 @@ def aip_task(job_id,
     job.status = "RUNNING"
     job.task_id = aip_task.request.id
     job.save()
-    '''
-    # If the alignment format is BAM, then we first convert to SAM format. Requires samtools to be installed.
-    sam_file = processSamFile(folder, sam_file)
 
+    # First convert BAM file to SAM format. Requires samtools to be installed.
+    folder = os.path.join(settings.MEDIA_ROOT, job_id)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    sam_file = processBamFile(folder, bam_file)
+    
+    '''
     annotation_file = processAnnotationFile(folder, annotation_file)
     
     if alignment_type == "genome" :

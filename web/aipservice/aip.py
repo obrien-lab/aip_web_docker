@@ -29,22 +29,15 @@ AMINO_ACIDS = ['A', 'R', 'D', 'N', 'C', 'E', 'Q', 'G', 'H', 'I', 'L', 'K', 'M', 
 MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE = "Multiple_mapped_gene_read_counts.tab"
 
 def processSamFile(folder,
-                   sam_file):
-    # change to the folder
-    os.chdir(folder)
+                   bam_file):
+    # create the folder
+    sam_file = os.path.join(folder, 'samfile.sam')
     
-    file_name, ext = os.path.splittext(sam_file)
-    
-    if ext == 'bam':
-        try:
-            subprocess.call('samtools view ' + sam_file + ' > ' + file_name + '.sam', shell=True)
-            sam_file = file_name + '.sam'
-        except Exception:
-            print('samtools not running. Check installation.')
-    elif ext == "sam":
-        pass
-    else:
-        print('Unrecognized file format of alignment input file. Exiting...')
+    try:
+        subprocess.call('samtools view ' + bam_file + ' > ' + samfile, shell=True)
+        
+    except Exception:
+        print('samtools failed. Check the input bam file.')
         
     return sam_file
 
