@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('fasta_file', models.FilePathField(path='/files/input')),
                 ('offset_file', models.FilePathField(blank=True, null=True, path='/files/input')),
                 ('filter_file', models.FilePathField(blank=True, null=True, path='/files/input')),
-                ('include', models.BooleanField(null=True)),
+                ('include', models.BooleanField()),
                 ('min_frag', models.IntegerField()),
                 ('max_frag', models.IntegerField()),
                 ('three_prime', models.BooleanField()),

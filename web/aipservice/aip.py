@@ -4,11 +4,10 @@ from Bio import SeqIO
 import sys
 import subprocess
 import os
-import cPickle as Pickle
 from collections import OrderedDict
 import numpy as np
 import scipy.stats as stat
-
+ 
 CODON_TYPES = ['UUU', 'UUC', 'UUA', 'UUG', 'CUU', 'CUC', 'CUA', 'CUG', 'AUU', 'AUC', 'AUA', 'AUG', 'GUU', 'GUC', 'GUA',
                'GUG', 'UCU', 'UCC', 'UCA', 'UCG', 'CCU', 'CCC', 'CCA', 'CCG', 'ACU', 'ACC', 'ACA', 'ACG', 'GCU', 'GCC',
                'GCA', 'GCG', 'UAU', 'UAC', 'CAU', 'CAC', 'CAA', 'CAG', 'AAU', 'AAC', 'AAA', 'AAG', 'GAU', 'GAC', 'GAA',
@@ -28,32 +27,32 @@ AMINO_ACIDS = ['A', 'R', 'D', 'N', 'C', 'E', 'Q', 'G', 'H', 'I', 'L', 'K', 'M', 
 
 MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE = "Multiple_mapped_gene_read_counts.tab"
 
-def processSamFile(folder,
+def processBamFile(folder,
                    bam_file):
     # create the folder
     sam_file = os.path.join(folder, 'samfile.sam')
-    
+    subprocessStr = 'samtools view ' + bam_file + ' > ' + sam_file
+
     try:
-        subprocess.call('samtools view ' + bam_file + ' > ' + samfile, shell=True)
-        
+        subprocess.call(subprocessStr, shell=True)        
     except Exception:
-        print('samtools failed. Check the input bam file.')
-        
+        raise Exception('Samtools failed. Check the input bam file.')
+
     return sam_file
 
 def processAnnotationFile(folder,
                          annotation_file):
-    file_name, ext = os.path.splittext(annotation_file)
-    if ext == 'gff' or ext == 'gff3':
+    file_name, ext = os.path.splitext(annotation_file)
+    if ext == '.gff' or ext == '.gff3':
         if 'sacCer3' in annotation_file or 'saccer3' in annotation_file:
             annotation_file = process_gff_sacCer3(annotation_file)
         elif 'ecoli' in annotation_file:
             annotation_file = process_gff_ecoli(annotation_file)
         else:
             print('[Warning]: GFF file entered as input for gene annotations. Exercise caution. Parsing of GFF file is optimized only for sacCer3 and E.coli. Check the format')
-            
+
         return annotation_file
-    
+
 
 def samparser_genome(sfile, frag_min, frag_max, three_prime):
     # Parse the SAM file and quantify mapped reads to chromosome positions.
@@ -158,11 +157,9 @@ def samparser_genome(sfile, frag_min, frag_max, three_prime):
                     except KeyError:
                         log_file.write("The KeyError line is \n " + line + "\n")
             counter += 1
-            sys.stdout.write("Line of SAM file currently being parsed: {0}.\t\r".format(counter))
-            sys.stdout.flush()
 
-    print('\nSAM file parsed for total ' + str(read_count) + ' reads mapping onto ' + str(len(dict_count)) + ' chromosomes.'
-    print(str(mul_read_count) + ' reads are multiple aligned mapped to ' + str(len(dict_mul_count)) + ' chromosomes.'))
+    print('\nSAM file parsed for total ' + str(read_count) + ' reads mapping onto ' + str(len(dict_count)) + ' chromosomes.')
+    print(str(mul_read_count) + ' reads are multiple aligned mapped to ' + str(len(dict_mul_count)) + ' chromosomes.')
 
     return dict_count, dict_mul_count
 
@@ -909,8 +906,6 @@ def generate_asite_profiles(frag_min, frag_max, offfile, infolder):
         asite_table_dict[gene] = asite_profile
         asite_file.write(gene + '\t' + str(dict_len[gene]) + '\t' + ','.join(map(str, asite_profile)) + '\n')
 
-    # Dumping a pickle object for easy import in downstream analyses
-    Pickle.dump(asite_table_dict, open('A-site_profiles.p', 'wb'))
     asite_file.close()
 
 
@@ -1439,8 +1434,6 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
 
                 if bootstrap:
                     mega_sum_dict, mega_perc_dict = bootstrap_gene_count(c, list_genes)
-                    Pickle.dump(mega_perc_dict, open('Pickle_dicts/bootstrap_perc_dict.p', 'wb'))
-                    Pickle.dump(mega_sum_dict, open('Pickle_dicts/bootstrap_count_dict.p', 'wb'))
                     # Write the properties of the genes at each offset for eack threshold value
                     for off in range(0, fsize, 3):
                         if off not in mega_perc_dict:
@@ -1785,3 +1778,40 @@ def bootstrap_gene_count(cutoff, list_genes):
 
     return mega_sum_dict, mega_perc_dict
 
+def run_aip(folder, 
+            bam_file, 
+            annotation_file, 
+            fasta_file,
+            offset_file,
+            min_frag, 
+            max_frag, 
+            three_prime, 
+            overlap, 
+            threshold_avg_reads,
+            threshold_gene_pct,
+            threshold_start_codon,
+            filter_file,
+            include,
+            alignment_type,
+            get_asite):
+    sam_file = processBamFile(folder, bam_file)
+
+    annotation_file = processAnnotationFile(folder, annotation_file)
+
+    if alignment_type == "genome" :
+        count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
+        print('Parsed the SAM file. Starting to quantify CDS read counts')
+        create_cds_counts_genome(annotation_file, fasta_file, folder, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
+    else:
+        count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
+        print('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
+        create_cds_counts_transcriptome(annotation_file, fasta_file, folder, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
+
+    if get_asite:
+        generate_asite_profiles(min_frag, max_frag, offset_file, folder)
+
+    # Filter genes which have greater than threshold (default=1) reads per codon on average
+    filtered_genes, dataset_gene_len = select_high_cov_genes(folder, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
+    print('Parsed the CDS file')
+
+    offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_start_codon, threshold_gene_pct, three_prime)

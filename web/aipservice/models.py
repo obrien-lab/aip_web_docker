@@ -12,7 +12,7 @@ class Job(models.Model):
     fasta_file = models.FilePathField(path = INPUT)
     offset_file = models.FilePathField(path = INPUT, null=True, blank=True)
     filter_file = models.FilePathField(path = INPUT, null=True, blank=True)
-    include = models.BooleanField(null=True)
+    include = models.BooleanField()
     min_frag = models.IntegerField()
     max_frag = models.IntegerField()
     three_prime = models.BooleanField()

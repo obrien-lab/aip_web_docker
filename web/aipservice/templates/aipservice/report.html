@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
 {% endblock %}
 {% block content %}
-<h2>Task {{job.task_id}} </h2> 
+<h2>Task {% firstof job.task_id or "" %} </h2> 
 <i>Submitted by {{ job.email}} on {{ job.create_date}} UTC</i>
 {% if job.status == "PENDING" %}
 <h4>Status: <span class="label label-default">{{job.status}}</span></h4>
