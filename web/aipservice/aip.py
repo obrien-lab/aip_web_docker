@@ -51,7 +51,7 @@ def processAnnotationFile(folder,
         else:
             print('[Warning]: GFF file entered as input for gene annotations. Exercise caution. Parsing of GFF file is optimized only for sacCer3 and E.coli. Check the format')
 
-        return annotation_file
+    return annotation_file
 
 
 def samparser_genome(sfile, frag_min, frag_max, three_prime):
@@ -249,9 +249,9 @@ def samparser_transcriptome(sfile, frag_min, frag_max, three_prime):
     return dict_count, dict_mul_count, total_count
 
 
-def create_cds_counts_transcriptome(idx_file, seq_file, output, sam_count_dict, dict_mul_count, total_count, frag_min, frag_max, three_prime, fast_mode=True):
+def create_cds_counts_transcriptome(idx_file, seq_file, folder, sam_count_dict, dict_mul_count, total_count, frag_min, frag_max, three_prime, fast_mode=True):
 
-    logfile = open(output+'makecdstable.log', 'w')
+    logfile = open(os.path.join(folder,'makecdstable.log'), 'w')
     frag_range = frag_max - frag_min + 1
     mul_gene_list = []
     dict_mul_genes = {}
@@ -357,19 +357,19 @@ def create_cds_counts_transcriptome(idx_file, seq_file, output, sam_count_dict, 
             cds_pos += 1
 
     # Write out the number of mutliple mapped reads for each gene according to fragment size and frame. For each fragment size, write the reads for frame 0, 1 and 2.
-    mul_out_file = open(output+MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE, 'w')
+    mul_out_file = open(os.path.join(folder,MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE), 'w')
 
     for gene in dict_mul_count_len:
         mul_out_file.write(str(gene))
         for fsize in range(frag_min, frag_max + 1):
-            for frame in xrange(3):
+            for frame in range(3):
                 mul_out_file.write('\t' + str(dict_mul_count_len[gene][fsize][frame]))
         mul_out_file.write('\n')
     mul_out_file.close()
 
     for fsize in range(frag_min, frag_max + 1):
-        count_file = open(output+'Read_counts_' + str(fsize) + '.tab', 'w')
-        for gene, reads_list in dict_count_len[fsize].iteritems():
+        count_file = open(os.path.join(folder, 'Read_counts_' + str(fsize) + '.tab'), 'w')
+        for gene, reads_list in dict_count_len[fsize].items():
             start_pos, cds_len = idx_dict[gene]
             start_idx = dict_start[gene]
             # Writing the read count for transcripts
@@ -377,7 +377,7 @@ def create_cds_counts_transcriptome(idx_file, seq_file, output, sam_count_dict, 
         count_file.close()
 
 
-def create_cds_counts_genome(annotation_file, genome, output, sam_parsed_count_dict, dict_mul_count, frag_min, frag_max, three_prime, extra_overlap, remove_overlapped_genes=True):
+def create_cds_counts_genome(annotation_file, genome, folder, sam_parsed_count_dict, dict_mul_count, frag_min, frag_max, three_prime, extra_overlap, remove_overlapped_genes=True):
     # This module will take the count dictionary parsed from the sam file containing the read counts at each genomic position and map it to gene positions
 
     complimentarydict = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
@@ -506,19 +506,19 @@ def create_cds_counts_genome(annotation_file, genome, output, sam_parsed_count_d
 
     # Determine the percentage of reads which are multiple mapped to a gene and discard it if it is greater than the threshold set for multiple map filter.
     # This is done specific to each fragment size
-    mul_out_file = open(output+MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE, 'w')
+    mul_out_file = open(os.path.join(folder, MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE), 'w')
 
     for gene in dict_mul_count_len:
         mul_out_file.write(gene)
         for fsize in range(frag_min, frag_max + 1):
-            for frame in xrange(3):
+            for frame in range(3):
                 mul_out_file.write('\t' + str(dict_mul_count_len[gene][fsize][frame]))
         mul_out_file.write('\n')
     mul_out_file.close()
 
     for fsize in range(frag_min, frag_max + 1):
-        count_file = open(output+'Read_counts_' + str(fsize) + '.tab', 'w')
-        for gene, reads_list in dict_count_len[fsize].iteritems():
+        count_file = open(os.path.join(folder, 'Read_counts_' + str(fsize) + '.tab'), 'w')
+        for gene, reads_list in dict_count_len[fsize].items():
             chr_num, strand = dict_gene[gene]
             length = dict_len[gene]
             if remove_overlapped_genes and gene in overlap_genes:
@@ -751,7 +751,7 @@ def find_overlapping_genes(dict_cds_info, dict_gene, extra_len=0):
         except KeyError:
             dict_search_overlap[chrnum] = [[gene_name, leftpos, rightpos, strand]]
 
-    for gene, info in dict_overlap.iteritems():
+    for gene, info in dict_overlap.items():
         overlap_list.append(gene)
     overlap_list.sort()
 
@@ -759,7 +759,7 @@ def find_overlapping_genes(dict_cds_info, dict_gene, extra_len=0):
 
 
 
-def get_transcript_sequences(annotation_file, genome, output, extra_overlap=0):
+def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
     # This module will take the count dictionary parsed from the sam file containing the read counts at each genomic position and map it to gene positions
 
     complimentarydict = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
@@ -813,7 +813,7 @@ def get_transcript_sequences(annotation_file, genome, output, extra_overlap=0):
         sys.stdout.write("Out of " + str(len(dict_cds_count)) + " transcripts, currently processing transcript {0}.\t\r".format(counter))
         sys.stdout.flush()
 
-        count_file = open(output+'Transcript_sequence.tab', 'w')
+        count_file = open(os.path.join(folder,'Transcript_sequence.tab'), 'w')
         for gene in nuc_dict:
             chr_num, strand = dict_gene[gene]
             length = dict_len[gene]
@@ -840,12 +840,12 @@ def generate_asite_profiles(frag_min, frag_max, offfile, infolder):
     # We parse the files for each fragment size which contain the read counts aligned by 5' end for CDS region along with a certain length before and beyond the CDS
     for fsize in range(frag_min, frag_max + 1):
         read_count_dict[fsize] = {}
-        with open(infolder+'Read_counts_' + str(fsize) + '.tab') as count_file:
+        with open(os.path.join(infolder, 'Read_counts_' + str(fsize) + '.tab')) as count_file:
             for lines in count_file:
                 fields = lines.strip().split('\t')
                 gene = fields[0]
                 start_index, length = int(fields[1]), int(fields[2])
-                reads_list = map(int, fields[3].split(','))
+                reads_list = list(map(int, fields[3].split(',')))
                 dict_len[gene] = length
                 read_count_dict[fsize][gene] = {}
                 # We start by counting all the read counts listed from the starting index before the start position to similar length beyond stop position
@@ -923,7 +923,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
     for fsize in range(frag_min, frag_max + 1):
         if fsize not in reads_dict:
             reads_dict[fsize] = {}
-        with open(folder + 'Read_counts_' + str(fsize) + '.tab') as f:
+        with open(os.path.join(folder, 'Read_counts_' + str(fsize) + '.tab')) as f:
             for lines in f:
                 line_list = lines.strip().split('\t')
                 gene_name = line_list[0]
@@ -954,7 +954,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
 
     print('\nParsed read counts for all fragment sizes ')
 
-    log_file = open(output + 'select_genes.log', 'w')
+    log_file = open(os.path.join(folder, 'select_genes.log'), 'w')
     # Get the number of mul mapped reads to decide whether to delete the gene or not. If a gene has more than 0.1% of reads multiple mapped, we delete it
     mul_map_dict = {}
     mul_map_gene_reads = {}
@@ -962,7 +962,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
         for lines in f:
             line_list = lines.strip().split('\t')
             gene_name = line_list[0]
-            read_counts = map(int, line_list[1:])
+            read_counts = list(map(int, line_list[1:]))
             mul_map_gene_reads[gene_name] = sum(read_counts)
             idx = 0
             for fsize in range(frag_min, frag_max + 1):
@@ -971,7 +971,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
                 mul_map_dict[fsize][gene_name] = {0: read_counts[idx], 1: read_counts[idx + 1], 2: read_counts[idx + 2]}
                 idx += 3
 
-        mulfile = open(output + 'Genes_multiple_mapped_reads_agg.tab', 'w')
+        mulfile = open(os.path.join(folder, 'Genes_multiple_mapped_reads_agg.tab'), 'w')
         # List of all genes which have > 1% mul mapped reads and hence will not be considered
         mul_map_genes = []
         for gene in mul_map_gene_reads:
@@ -1009,10 +1009,10 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
     for fsize in range(frag_min, frag_max + 1):
         good_genes[fsize] = {}
         good_genes_mul_map[fsize] = {}
-        for frame in xrange(3):
+        for frame in range(3):
             good_genes[fsize][frame] = []
             good_genes_mul_map[fsize][frame] = []
-        for gene_name, dict_reads in reads_dict[fsize].iteritems():
+        for gene_name, dict_reads in reads_dict[fsize].items():
             # If we want to exclude or include a set of genes
             if filter_genes:
                 # If the include boolean is false, we will exclude the genes in the list select_genes
@@ -1049,7 +1049,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
             except KeyError:
                 print('Length not available for gene ' + gene_name)
                 short_utr = False
-            for frame in xrange(3):
+            for frame in range(3):
                 if three_prime:
                     ref = reads[frame::3]
 
@@ -1083,12 +1083,12 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
                     else:
                         good_genes[fsize][frame].append(gene_name)
 
-    outfile = open(output + 'Sorted_genes_by_Avg_reads_frag_size.tab', 'w')
+    outfile = open(os.path.join(folder, 'Sorted_genes_by_Avg_reads_frag_size.tab'), 'w')
     for name in dict_gene:
         outfile.write(name)
         for fsize in range(frag_min, frag_max + 1):
             try:
-                for frame in xrange(3):
+                for frame in range(3):
                     outfile.write('\t' + str(dict_gene[name][fsize][frame][0]) + '\t' + str(dict_gene[name][fsize][frame][1]) + '\t' + str(dict_gene[name][fsize][frame][2]))
             except KeyError:
                 continue
@@ -1097,11 +1097,11 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
     filtered_cds_dict = {}
     for i in range(frag_min, frag_max + 1):
         filtered_cds_dict[i] = {}
-        for frame in xrange(3):
+        for frame in range(3):
             filtered_cds_dict[i][frame] = {}
-    log_file = open(output + 'Gene_filter_statistics.tab', 'w')
+    log_file = open(os.path.join(folder, 'Gene_filter_statistics.tab'), 'w')
     for fsize in filtered_cds_dict:
-        for frame in xrange(3):
+        for frame in range(3):
             for name in good_genes[fsize][frame]:
                 filtered_cds_dict[fsize][frame][name] = reads_dict[fsize][name]
 
@@ -1113,7 +1113,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                                                       dict_len, 
                                                       frag_min, 
                                                       frag_max, 
-                                                      output, 
+                                                      folder, 
                                                       offset_threshold, 
                                                       off_correction_threshold, 
                                                       three_prime,
@@ -1130,10 +1130,10 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
     details = {}
     debug_details = {}
 
-    for frame in xrange(3):
+    for frame in range(3):
         details[frame] = {}
         debug_details[frame] = {}
-    log_file = open(output + 'asite_ip.log', 'w')
+    log_file = open(os.path.join(folder, 'asite_ip.log'), 'w')
 
     # The following dict will contain meta gene for every gene in every fsize and frame. The meta-data include no. of zeros, perc zeros, avg, avg at start and avg at end
     sum_total = {}
@@ -1142,7 +1142,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
     for fsize in range(frag_min, frag_max + 1):
         dict_cov_info[fsize] = {}
         sum_total[fsize] = {}
-        for frame in xrange(3):
+        for frame in range(3):
             dict_cov_info[fsize][frame] = {}
             sum_total[fsize][frame] = 0
 
@@ -1153,7 +1153,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
         # The following will be used as an index in the read dictionary for each gene
         last_off = -fsize
 
-        for frame in xrange(3):
+        for frame in range(3):
             if frame not in offset_dic:
                 offset_dic[frame] = {}
                 correction_dic[frame] = {}
@@ -1365,7 +1365,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
             # Needed to create the error bars for the plot for Figure 3.
             bootstrap_dict[fsize] = {}
             dict_most_prob_offsets[fsize] = {}
-            for frame in xrange(3):
+            for frame in range(3):
                 bootstrap_dict[fsize][frame] = {}
                 read_avg_dict = {}
                 for off in range(0, fsize, 3):
@@ -1374,7 +1374,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                 dict_most_prob_offsets[fsize][frame] = {'off': '', 'perc': ''}
                 gene_count = 0
                 # Append the meta gene properties to their respective dictionaries according to the offsets
-                for gene, offset in offset_dic[frame][fsize].iteritems():
+                for gene, offset in offset_dic[frame][fsize].items():
                     try:
                         # Get the meta data of each gene from the dict_cov_info dictionary
                         read_avg = dict_cov_info[fsize][frame][gene]
@@ -1414,7 +1414,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                         elif no_of_genes < 10 and dict_most_prob_offsets[fsize][frame]['off'] == '':
                             dict_most_prob_offsets[fsize][frame]['off'] = 'NA'
                             dict_most_prob_offsets[fsize][frame]['perc'] = str(perc_dict[sorted_perc[0]])
-                    elif perc_dict[sorted_perc[0]] >= offset_threshold and no_of_genes >= 10:
+                    elif (perc_dict[sorted_perc[0]] == "NA" or perc_dict[sorted_perc[0]] >= offset_threshold) and no_of_genes >= 10:
                         dict_most_prob_offsets[fsize][frame]['perc'] = str(perc_dict[sorted_perc[0]])
                     if no_of_genes >= 10:
                         trend_list[0].append(c)
@@ -1476,8 +1476,8 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
     """
     ***    WRITE THE RESULTS AND PLOT DISTRIBUTION OF OFFSETS ***
     """
-    outfile = open(output + "Results_IP_algorithm.tab", "w")
-    perc_file = open(output + "Perc_of_genes_for_all_offsets.tab", "w")
+    outfile = open(os.path.join(folder, "Results_IP_algorithm.tab"), "w")
+    perc_file = open(os.path.join(folder, "Perc_of_genes_for_all_offsets.tab"), "w")
 
     outfile.write('\n\nMost probable Offsets for Fragment Size and Frame (including coverage data)\n')
     outfile.write('Frag size\tFrame_0\tFrame_1\tFrame_2\n')
@@ -1500,7 +1500,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
     outfile.write('\n\n\tNumber of genes\nFrag/Frame\t0\t1\t2\n')
     for fsize in range(frag_min, frag_max + 1):
         outfile.write(str(fsize))
-        for frame in xrange(3):
+        for frame in range(3):
             try:
                 outfile.write('\t' + str(len(offset_dic[frame][fsize])))
             except KeyError:
@@ -1510,19 +1510,19 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
     outfile.write('\n\n\tNumber of reads\nFrag/Frame\t0\t1\t2\n')
     for fsize in range(frag_min, frag_max + 1):
         outfile.write(str(fsize))
-        for frame in xrange(3):
+        for frame in range(3):
             outfile.write('\t' + str(sum_total[fsize][frame]))
         outfile.write('\n')
 
     perc_file.write('Percentage of genes\nFrag/Frame\t0\t1\t2\n')
     for fsize in range(frag_min, frag_max + 1):
         perc_file.write(str(fsize))
-        for frame in xrange(3):
+        for frame in range(3):
             offset_list = {}
             for off in range(0, fsize, 3):
                 offset_list[off] = []
             try:
-                for gene, val in offset_dic[frame][fsize].iteritems():
+                for gene, val in offset_dic[frame][fsize].items():
                     if val in offset_list:
                         offset_list[val].append(gene)
                 for off in sorted(offset_list):
@@ -1541,7 +1541,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
 
         for fsize in range(frag_min, frag_max + 1):
             outfile.write(str(fsize))
-            for frame in xrange(3):
+            for frame in range(3):
                 try:
                     for off in [0, 3, 6, 9, 12, 15, 18, 21]:
                         perc_file.write('\t' + str(bootstrap_dict[fsize][frame][off]['avg']))
@@ -1553,7 +1553,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
         perc_file.write('Perc of gene bootstrap results (SE)\nFrag\t0\t3\t6\t9\t12\t15\t18\t21\t0\t3\t6\t9\t12\t15\t18\t21\t0\t3\t6\t9\t12\t15\t18\t21\n')
         for fsize in range(frag_min, frag_max + 1):
             perc_file.write(str(fsize))
-            for frame in xrange(3):
+            for frame in range(3):
                 try:
                     for off in [0, 3, 6, 9, 12, 15, 18, 21]:
                         perc_file.write('\t' + str(bootstrap_dict[fsize][frame][off]['se_mean']))
@@ -1564,7 +1564,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
         perc_file.write('Perc of gene bootstrap results (LOW CI)\nFrag\t0\t3\t6\t9\t12\t15\t18\t21\t0\t3\t6\t9\t12\t15\t18\t21\t0\t3\t6\t9\t12\t15\t18\t21\n')
         for fsize in range(frag_min, frag_max + 1):
             perc_file.write(str(fsize))
-            for frame in xrange(3):
+            for frame in range(3):
                 try:
                     for off in [0, 3, 6, 9, 12, 15, 18, 21]:
                         perc_file.write('\t' + str(bootstrap_dict[fsize][frame][off]['low_ci']))
@@ -1576,7 +1576,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
         perc_file.write('Perc of gene bootstrap results (HIGH CI)\nFrag\t0\t3\t6\t9\t12\t15\t18\t21\t0\t3\t6\t9\t12\t15\t18\t21\t0\t3\t6\t9\t12\t15\t18\t21\n')
         for fsize in range(frag_min, frag_max + 1):
             perc_file.write(str(fsize))
-            for frame in xrange(3):
+            for frame in range(3):
                 try:
                     for off in [0, 3, 6, 9, 12, 15, 18, 21]:
                         perc_file.write('\t' + str(bootstrap_dict[fsize][frame][off]['high_ci']))

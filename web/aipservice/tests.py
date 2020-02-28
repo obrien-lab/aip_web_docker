@@ -19,19 +19,8 @@ alignment_type = "genome"
 get_asite = False
 
 
-run_aip(folder, 
-        bam_file, 
-        annotation_file, 
-        fasta_file,
-        offset_file,
-        min_frag, 
-        max_frag, 
-        three_prime, 
-        overlap, 
-        threshold_avg_reads,
-        threshold_gene_pct,
-        threshold_start_codon,
-        filter_file,
-        include,
-        alignment_type,
-        get_asite) 
+# run_aip(folder, bam_file, annotation_file, fasta_file, offset_file, min_frag, max_frag, three_prime, overlap, threshold_avg_reads, threshold_gene_pct, threshold_start_codon, filter_file,include, alignment_type,get_asite) 
+
+# cdsparser(annotation_file, fasta_file) 
+
+#annotation_file = processAnnotationFile(folder, annotation_file)
