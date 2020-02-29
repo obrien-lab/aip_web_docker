@@ -1,5 +1,4 @@
 import os
-import shutil
 from django.conf import settings
 from celery import shared_task
 from .models import Job
@@ -28,7 +27,7 @@ def aip_task(job_id,
     job.task_id = aip_task.request.id
     job.save()
 
-    # First convert BAM file to SAM format. Requires samtools to be installed.
+    # create the working folder
     folder = os.path.join(settings.MEDIA_ROOT, str(job_id))
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -54,9 +53,6 @@ def aip_task(job_id,
     except Exception as e:
         print("Error running the Asite-IP job: ", e)
         status = "ERROR"
-
-    # remove the folder
-    shutil.rmtree(folder)
     
     # update the job status
     job = Job.objects.get(id = job_id)

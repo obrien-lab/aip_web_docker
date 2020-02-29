@@ -10,7 +10,7 @@ services:
       - postgres:postgres
       - redis:redis
     volumes:
-      - ../aip-files:/files/input
+      - ../aip-files:/files
       - ./web:/opt/app/aip
     env_file: .env
     command: 

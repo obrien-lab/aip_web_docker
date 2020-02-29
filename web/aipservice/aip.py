@@ -4,6 +4,7 @@ from Bio import SeqIO
 import sys
 import subprocess
 import os
+import shutil
 from collections import OrderedDict
 import numpy as np
 import scipy.stats as stat
@@ -240,8 +241,6 @@ def samparser_transcriptome(sfile, frag_min, frag_max, three_prime):
                     except KeyError:
                         log_file.write("The KeyError line is \n " + line + "\n")
             counter += 1
-            sys.stdout.write("Line of SAM file currently being parsed: {0}.\t\r".format(counter))
-            sys.stdout.flush()
 
     print('\nSAM file parsed for total ' + str(read_count) + ' reads mapping onto ' + str(len(dict_count)) + ' genes.')
     print(str(mul_read_count) + ' reads are multiple aligned mapped to ' + str(len(dict_mul_count)) + ' genes.')
@@ -501,8 +500,6 @@ def create_cds_counts_genome(annotation_file, genome, folder, sam_parsed_count_d
                 if strand == '+':
                     gene_position_start += 1
         counter += 1
-        sys.stdout.write("Out of " + str(len(dict_cds_count)) + " transcripts, currently processing transcript {0}.\t\r".format(counter))
-        sys.stdout.flush()
 
     # Determine the percentage of reads which are multiple mapped to a gene and discard it if it is greater than the threshold set for multiple map filter.
     # This is done specific to each fragment size
@@ -810,8 +807,6 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
                 nuc_dict[gene_name].append(nuc)
         print('Got gene sequence for '+gene_name)
         counter += 1
-        sys.stdout.write("Out of " + str(len(dict_cds_count)) + " transcripts, currently processing transcript {0}.\t\r".format(counter))
-        sys.stdout.flush()
 
         count_file = open(os.path.join(folder,'Transcript_sequence.tab'), 'w')
         for gene in nuc_dict:
@@ -826,7 +821,7 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
         count_file.close()
 
 
-def generate_asite_profiles(frag_min, frag_max, offfile, infolder):
+def generate_asite_profiles(frag_min, frag_max, offfile, scratch, folder):
     offsets = {}
     with open(offfile) as f:
         for lines in f:
@@ -840,7 +835,7 @@ def generate_asite_profiles(frag_min, frag_max, offfile, infolder):
     # We parse the files for each fragment size which contain the read counts aligned by 5' end for CDS region along with a certain length before and beyond the CDS
     for fsize in range(frag_min, frag_max + 1):
         read_count_dict[fsize] = {}
-        with open(os.path.join(infolder, 'Read_counts_' + str(fsize) + '.tab')) as count_file:
+        with open(os.path.join(scratch, 'Read_counts_' + str(fsize) + '.tab')) as count_file:
             for lines in count_file:
                 fields = lines.strip().split('\t')
                 gene = fields[0]
@@ -898,7 +893,7 @@ def generate_asite_profiles(frag_min, frag_max, offfile, infolder):
             asite_dict[gene][fsize] = asite
 
     # Output file for A-site profiles
-    asite_file = open('A-site_profiles.tab', 'w')
+    asite_file = open(os.path.join(folder, 'A-site_profiles.tab'), 'w')
     asite_table_dict = {}
     for gene in asite_dict:
         # This adds up the read count at every position from all fragment sizes for every gene
@@ -1794,24 +1789,32 @@ def run_aip(folder,
             include,
             alignment_type,
             get_asite):
-    sam_file = processBamFile(folder, bam_file)
+    # create the scratch folder    
+    scratch = os.path.join(folder, "scratch")
+    if not os.path.exists(scratch):
+        os.makedirs(scratch)
+        
+    sam_file = processBamFile(scratch, bam_file)
 
-    annotation_file = processAnnotationFile(folder, annotation_file)
+    annotation_file = processAnnotationFile(scratch, annotation_file)
 
     if alignment_type == "genome" :
         count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
         print('Parsed the SAM file. Starting to quantify CDS read counts')
-        create_cds_counts_genome(annotation_file, fasta_file, folder, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
+        create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
     else:
         count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
         print('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
-        create_cds_counts_transcriptome(annotation_file, fasta_file, folder, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
+        create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
     if get_asite:
-        generate_asite_profiles(min_frag, max_frag, offset_file, folder)
+        generate_asite_profiles(min_frag, max_frag, offset_file, scratch, folder)
 
     # Filter genes which have greater than threshold (default=1) reads per codon on average
-    filtered_genes, dataset_gene_len = select_high_cov_genes(folder, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
+    filtered_genes, dataset_gene_len = select_high_cov_genes(scratch, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
     print('Parsed the CDS file')
 
     offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_start_codon, threshold_gene_pct, three_prime)
+    
+    # remove the scratch folder
+    shutil.rmtree(scratch)
