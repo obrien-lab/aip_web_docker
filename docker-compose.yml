@@ -24,7 +24,7 @@ services:
     command: bash -c "cd aip && celery -A aip_project worker -l info"
     env_file: .env
     volumes:
-      - ../aip-files:/files/input
+      - ../aip-files:/files
       - ./web:/opt/app/aip
     depends_on:
       - postgres
