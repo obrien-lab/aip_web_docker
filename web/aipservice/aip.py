@@ -1814,7 +1814,7 @@ def run_aip(folder,
     filtered_genes, dataset_gene_len = select_high_cov_genes(scratch, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
     print('Parsed the CDS file')
 
-    offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_start_codon, threshold_gene_pct, three_prime)
+    offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_gene_pct, threshold_start_codon, three_prime)
     
     # remove the scratch folder
     shutil.rmtree(scratch)
