@@ -8,7 +8,7 @@
 {% endblock %}
 {% block content %}
 <h2>Get A-site Profiles</h2>
-<form action="{% url 'home' %}" method="post" enctype="multipart/form-data" class="form">
+<form action="{% url 'submit_profile' %}" method="post" enctype="multipart/form-data" class="form">
   {% csrf_token %}
   <div class="form-group">
     <label>Alignment mode</label>

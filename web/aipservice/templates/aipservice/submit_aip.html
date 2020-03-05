@@ -8,7 +8,7 @@
 {% endblock %}
 {% block content %}
 <h2>Submit A-site IP Job</h2>
-<form action="{% url 'home' %}" method="post" enctype="multipart/form-data" class="form">
+<form action="{% url 'submit_aip' %}" method="post" enctype="multipart/form-data" class="form">
   {% csrf_token %}
   <div class="form-group">
     <label>Alignment mode</label>
@@ -150,12 +150,6 @@
     <label>Generate A-site read density profiles</label>
     <span><input type="radio" name="get_asite" value="true"> Yes <input type="radio" name="get_asite" value="false" checked> No </span>
     <span class="error">{{form.get_asite.errors}}</span>  
-    <div id="offset-file">
-      <label>Offset file (optional)</label>
-      {{ form.offset_file }}
-      <span class="error">{{form.offset_file.errors}}</span>  
-      <span class="form-text text-muted">Users can upload an offset file which contains offsets in rows of different fragment sizes and columns in frame 0,1 and 2. The first column should be fragment size. If no offset file is provided, the offset table generated from the Asite-IP algorithm will be used. </span>
-    </div>
   </div>
   <div class="form-group">
     <label>Email <input type="email" name="email"></label>
