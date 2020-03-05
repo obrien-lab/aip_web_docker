@@ -14,7 +14,7 @@
 <h4>Status: <span class="label label-success">{{job.status}}</span></h4>
 <div>
   <h4>Download</h4>
-  <a  href="{% url 'download' 'Results_IP_algorithm.tab' %}">Results_IP_algorithm.tab</a>
+  <a  href="{% url 'download' path %}">Results_IP_algorithm.tab</a>
 </div>
 <h4>Table 1. Most probable Offsets for Fragment Size and Frame</h4>
 <table class="table table-bordered" id="offsets">
@@ -67,7 +67,7 @@
 <script>
 $(function(){
     $.ajax({
-        url: '/aip/ajax/get_results/' + {{job.id}},
+        url: '/ajax/get_results/' + {{job.id}},
         dataType: 'json',
         success: function (data) {
           if (true) {

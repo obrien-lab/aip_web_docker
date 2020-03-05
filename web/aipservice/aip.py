@@ -1818,3 +1818,36 @@ def run_aip(folder,
     
     # remove the scratch folder
     shutil.rmtree(scratch)
+
+def run_profile(folder, 
+                bam_file, 
+                annotation_file, 
+                fasta_file,
+                offset_file,
+                min_frag, 
+                max_frag, 
+                three_prime, 
+                overlap, 
+                alignment_type):
+    # create the scratch folder    
+    scratch = os.path.join(folder, "scratch")
+    if not os.path.exists(scratch):
+        os.makedirs(scratch)
+        
+    sam_file = processBamFile(scratch, bam_file)
+
+    annotation_file = processAnnotationFile(scratch, annotation_file)
+
+    if alignment_type == "genome" :
+        count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
+        print('Parsed the SAM file. Starting to quantify CDS read counts')
+        create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
+    else:
+        count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
+        print('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
+        create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
+
+    generate_asite_profiles(min_frag, max_frag, offset_file, scratch, folder)
+    
+    # remove the scratch folder
+    shutil.rmtree(scratch)

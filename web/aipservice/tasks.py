@@ -59,3 +59,47 @@ def aip_task(job_id,
     job.status = status
     job.save()
     
+
+@shared_task
+def profile_task(job_id,
+            bam_file, 
+            annotation_file, 
+            fasta_file,
+            offset_file,
+            min_frag = 20, 
+            max_frag = 35, 
+            three_prime = False, 
+            overlap = 0, 
+            alignment_type = "genome",
+            ):  
+    job = Job.objects.get(id = job_id)
+    job.status = "RUNNING"
+    job.task_id = profile_task.request.id
+    job.save()
+
+    # create the working folder
+    folder = os.path.join(settings.MEDIA_ROOT, str(job_id))
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    status = "SUCCESS"
+    try:
+        run_profile(folder, 
+                bam_file, 
+                annotation_file, 
+                fasta_file,
+                offset_file,
+                min_frag, 
+                max_frag, 
+                three_prime, 
+                overlap, 
+                alignment_type)
+    except Exception as e:
+        print("Error getting A-site profiles: ", e)
+        status = "ERROR"
+    
+    # update the job status
+    job = Job.objects.get(id = job_id)
+    job.status = status
+    job.save()
+    

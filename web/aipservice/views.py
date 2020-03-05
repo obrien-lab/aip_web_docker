@@ -1,5 +1,4 @@
 import os
-
 from celery import uuid
 from celery import current_app
 from django import forms
@@ -17,11 +16,15 @@ class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ('bam_file', 'annotation_file', 'fasta_file', 'offset_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_asite', 'email', )
-    
+
 class HomeView(View):
     def get(self, request):
+        return render(request, 'aipservice/home.html')
+        
+class SubmitAipView(View):
+    def get(self, request):
         form = JobForm()
-        return render(request, 'aipservice/home.html', { 'form': form })
+        return render(request, 'aipservice/submit_aip.html', { 'form': form })
     
     def post(self, request):
         form = JobForm(request.POST, request.FILES)
@@ -52,15 +55,50 @@ class HomeView(View):
             return redirect('report', job_id = job.id)
         else:
             context['form'] = form
-            return render(request, 'aipservice/home.html', context)
+            return render(request, 'aipservice/submit_aip.html', context)
+        
+class SubmitProfileView(View):
+    def get(self, request):
+        form = JobForm()
+        return render(request, 'aipservice/submit_profile.html', { 'form': form })
     
+    def post(self, request):
+        form = JobForm(request.POST, request.FILES)
+        context = {}        
+
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.status = "PENDING"
+            job.save()
+                
+            task = profile_task.delay(job.id,
+                                job.bam_file, 
+                                job.annotation_file, 
+                                job.fasta_file,
+                                job.offset_file,
+                                job.min_frag, 
+                                job.max_frag, 
+                                job.three_prime, 
+                                job.overlap, 
+                                job.alignment_type)
+            
+            return redirect('report', job_id = job.id)
+        else:
+            context['form'] = form
+            return render(request, 'aipservice/submit_profile.html', context)
+
+class DatasetsView(View):
+    pass
+
 class ReportView(View):
     def get(self, request, job_id):
         job = get_object_or_404(Job, id=job_id)
-        return render(request, 'aipservice/report.html', {"job": job})
+        folder = os.path.join(settings.MEDIA_ROOT, job_id)
+        path = os.path.join(folder, 'Results_IP_algorithm.tab')
+        return render(request, 'aipservice/report.html', {"job": job, "path": path})
     
 def get_results(request, job_id):
-    folder  = settings.MEDIA_ROOT
+    folder  = os.path.join(settings.MEDIA_ROOT, job_id)
     filepath = os.path.join(folder, "Results_IP_algorithm.tab")
     block = ""
     
@@ -150,10 +188,9 @@ def get_results(request, job_id):
                         })
 
 def download(request, path):
-    file_path = os.path.join(settings.MEDIA_ROOT, path)
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
+    if os.path.exists(path):
+        with open(path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path)
             return response
     raise Http404

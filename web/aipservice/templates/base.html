@@ -13,7 +13,41 @@
     padding-top: 12px;    
     padding-bottom: 12px;
     margin-bottom: 0px;
+    background-color: #DCE7F0;
   }
+  .navbar {
+    height: 50px;
+    margin-bottom: 15px;
+    border-style: none;
+    border-radius: 0;
+    background-color: #0077c2;
+    z-index: +200;
+  }
+  .navbar-brand {
+    padding: 7px 0;
+    background-color: #0077c2;
+  }
+      
+  .navbar a {
+    color: white;
+  }
+
+  .navbar .icon-bar {
+	background-color:white;
+  }
+
+  #myNavbar {
+    background-color: #0077c2;
+  }
+
+  #myNavbar a:hover {
+    background-color: #91959C;
+  }
+
+  #myNavbar .active {
+    background-color: #54585A;
+  }
+
   </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
@@ -25,6 +59,28 @@
       <p>Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming.</p>
     </div>
   </div>
+  <nav class="navbar">
+    <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+                <li id="nav-home"><a href="{% url 'home' %}">Home</a></li>
+                <li id="nav-home"><a href="{% url 'datasets' %}">Datasets</a></li>
+                <li id="nav-home"><a href="{% url 'submit_aip' %}">Submit A-site IP job</a></li>
+                <li id="nav-home"><a href="{% url 'submit_profile' %}">Get A-site Profile</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li id="nav-login"><a href="admin">Login</a></li>
+            </ul>
+        </div>
+    </div>
+  </nav>
   <div class="container">
     {% block content %}
     {% endblock %}
