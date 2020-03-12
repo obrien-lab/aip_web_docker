@@ -11,18 +11,23 @@
 <form action="{% url 'submit_profile' %}" method="post" enctype="multipart/form-data" class="form">
   {% csrf_token %}
   <div class="form-group">
+    <label>Species</label>
+    {{form.species}}
+    <span class="error">{{form.species.errors}}</span>
+  </div>
+  <div class="form-group">
     <label>Alignment mode</label>
     <div class="form-check">
       <input class="form-check-input" type="radio"  name="alignment_type" value="genome" checked> 
       <label class="form-check-label">Genome</label> 
       <span class="form-text text-muted">This option is preferable for spaner genomes (e.g. E.coli, S. cerevisiae) with simple gene structures with fewer introns and isoforms.</span>
     </div>
-    <span class="error">{{form.alignment_type.errors}}</span>  
     <div class="form-check">
       <input class="form-check-input" type="radio" name="alignment_type" value="transcriptome"> 
       <label class="form-check-label">Transcriptome</label>
       <span class="form-text text-muted">This option is preferable for complex genomes like mouse and human. The alignment file contains reads directly aligned to gene transcripts.</span>
-    </div>        
+    </div>
+    <span class="error">{{form.alignment_type.errors}}</span>  
   </div>
   <div class="form-group">
     <label>BAM file</label>
@@ -141,6 +146,7 @@
 
 {% block javascript %}
 <script>
+  $("#nav-profile").addClass("active");
   $('input[type=radio][name=alignment_type]').change(function(){
       if (this.value == "genome") {
           $('#genome-annotation').show();
@@ -151,7 +157,7 @@
       }
   });
 
-  $('input[type=radio][name=get_asite]').change(function(){
+  $('input[type=radio][name=get_profile]').change(function(){
       if (this.value == "true") {
           $('#offset-file').show();
       } else {

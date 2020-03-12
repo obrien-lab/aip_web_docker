@@ -1,21 +1,14 @@
-{% extends 'base.html' %}
-{% block css %}
-<link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
-{% endblock %}
-{% block content %}
-<h2>Task {% firstof job.task_id or "" %} </h2> 
-<i>Submitted by {{ job.email}} on {{ job.create_date}} UTC</i>
-{% if job.status == "PENDING" %}
-<h4>Status: <span class="label label-default">{{job.status}}</span></h4>
-<div>
-  <p>Please check back later.</p>
-</div> 
-{% elif job.status == "SUCCESS" %}
-<h4>Status: <span class="label label-success">{{job.status}}</span></h4>
+{% extends 'report.html' %}
+{% block report %}
 <div>
   <h4>Download</h4>
-  <a  href="{% url 'download' path %}">Results_IP_algorithm.tab</a>
+  <ul>
+    {% if offset_path %}<li><a href="{% url 'download' offset_path %}">A-site_offsets.tab</a></li>{% endif %}
+    {% if profile_path %}<li><a href="{% url 'download' profile_path %}">A-site_profiles.tab</a></li>{% endif %}
+    {% if log_path %}<li><a href="{% url 'download' log_path %}">aip.log</a></li>{% endif %}
+  </ul> 
 </div>
+{% if job.status == "SUCCESS" %}
 <h4>Table 1. Most probable Offsets for Fragment Size and Frame</h4>
 <table class="table table-bordered" id="offsets">
   <thead>    
@@ -43,6 +36,7 @@
     <th>Frame 2</th>
   </thead>
 </table>
+{% endif %}
 <div>
   <h4>Parameters</h4>
   <ul>
@@ -55,9 +49,6 @@
       <li>Minimum ratio between the average reads in the second, third and fourth codon and the reads in the first codon: {{job.threshold_start_codon}}</li>
   </ul>
 </div>
-{% else %}
-<h4>Status: <span class="label label-danger">{{job.status}}</span></h4>
-{% endif %}
 {% endblock %}
 
 {% block javascript %}
@@ -67,7 +58,7 @@
 <script>
 $(function(){
     $.ajax({
-        url: '/ajax/get_results/' + {{job.id}},
+        url: '/ajax/get_aip_results/' + {{job.id}},
         dataType: 'json',
         success: function (data) {
           if (true) {

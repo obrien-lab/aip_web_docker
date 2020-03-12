@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
+{% endblock %}
+{% block content %}
+<h2>Task {% firstof job.task_id or "" %} </h2> 
+<i>Submitted by {{ job.email}} on {{ job.create_date}} UTC</i>
+{% if job.status == "PENDING" %}
+<h4>Status: <span class="label label-default">{{job.status}}</span></h4>
+<div>
+  <p>Please check back later.</p>
+</div> 
+{% elif job.status == "SUCCESS" %}
+<h4>Status: <span class="label label-success">{{job.status}}</span></h4>
+{% elif job.status == "RUNNING" %}
+<h4>Status: <span class="label label-info">{{job.status}}</span></h4>
+{% else %}
+<h4>Status: <span class="label label-danger">{{job.status}}</span></h4>
+{% endif %}
+{% block report %}
+{% endblock %}
+{% endblock %}

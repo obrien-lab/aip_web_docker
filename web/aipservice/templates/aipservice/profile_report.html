@@ -1,0 +1,19 @@
+{% extends 'report.html' %}
+{% block report %}
+<div>
+  <h4>Download</h4>
+  <ul>
+    {% if profile_path %}<li><a href="{% url 'download' profile_path %}">A-site_profiles.tab</a></li>{% endif %}
+    {% if log_path %}<li><a href="{% url 'download' log_path %}">aip.log</a></li>{% endif %}
+  </ul>
+</div>
+<div>
+  <h4>Parameters</h4>
+  <ul>
+      <li>Alignment type: {{job.alignment_type}} </li>
+      <li>Fragment length: min {{job.min_frag}} nt, max {{job.max_frag}} nt</li>
+      <li>Quantify reads from: {% if job.three_prime %} 3 {% else %} 5 {% endif%}' end</li>
+      <li>Overlap: {{job.overlap}} nt</li>
+  </ul>
+</div>
+{% endblock %}

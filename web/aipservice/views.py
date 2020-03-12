@@ -7,15 +7,20 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponse, Http404
-from .tasks import aip_task
-from .models import Job
+from .tasks import *
+from .models import *
     
 FRAMES = 3
 
-class JobForm(forms.ModelForm):
+class AipJobForm(forms.ModelForm):
     class Meta:
-        model = Job
-        fields = ('bam_file', 'annotation_file', 'fasta_file', 'offset_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_asite', 'email', )
+        model = AipJob
+        fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_profile', 'email', )
+        
+class ProfileJobForm(forms.ModelForm):
+    class Meta:
+        model = ProfileJob
+        fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'alignment_type', 'email', )
 
 class HomeView(View):
     def get(self, request):
@@ -23,11 +28,11 @@ class HomeView(View):
         
 class SubmitAipView(View):
     def get(self, request):
-        form = JobForm()
+        form = AipJobForm()
         return render(request, 'aipservice/submit_aip.html', { 'form': form })
     
     def post(self, request):
-        form = JobForm(request.POST, request.FILES)
+        form = AipJobForm(request.POST, request.FILES)
         context = {}        
 
         if form.is_valid():
@@ -36,10 +41,10 @@ class SubmitAipView(View):
             job.save()
                 
             task = aip_task.delay(job.id,
+                                job.species,
                                 job.bam_file, 
                                 job.annotation_file, 
                                 job.fasta_file,
-                                job.offset_file,
                                 job.min_frag, 
                                 job.max_frag, 
                                 job.three_prime, 
@@ -50,20 +55,20 @@ class SubmitAipView(View):
                                 job.filter_file,
                                 job.include,
                                 job.alignment_type,
-                                job.get_asite)
+                                job.get_profile)
             
-            return redirect('report', job_id = job.id)
+            return redirect('aip_report', job_id = job.id)
         else:
             context['form'] = form
             return render(request, 'aipservice/submit_aip.html', context)
         
 class SubmitProfileView(View):
     def get(self, request):
-        form = JobForm()
+        form = ProfileJobForm()
         return render(request, 'aipservice/submit_profile.html', { 'form': form })
     
     def post(self, request):
-        form = JobForm(request.POST, request.FILES)
+        form = ProfileJobForm(request.POST, request.FILES)
         context = {}        
 
         if form.is_valid():
@@ -72,6 +77,7 @@ class SubmitProfileView(View):
             job.save()
                 
             task = profile_task.delay(job.id,
+                                job.species,
                                 job.bam_file, 
                                 job.annotation_file, 
                                 job.fasta_file,
@@ -82,22 +88,48 @@ class SubmitProfileView(View):
                                 job.overlap, 
                                 job.alignment_type)
             
-            return redirect('report', job_id = job.id)
+            return redirect('profile_report', job_id = job.id)
         else:
             context['form'] = form
             return render(request, 'aipservice/submit_profile.html', context)
 
 class DatasetsView(View):
-    pass
+    def get(self, request):
+        return render(request, 'aipservice/datasets.html')
 
-class ReportView(View):
+class AipReportView(View):
     def get(self, request, job_id):
-        job = get_object_or_404(Job, id=job_id)
-        folder = os.path.join(settings.MEDIA_ROOT, job_id)
-        path = os.path.join(folder, 'Results_IP_algorithm.tab')
-        return render(request, 'aipservice/report.html', {"job": job, "path": path})
+        job = get_object_or_404(AipJob, id=job_id)
+        folder = os.path.join(settings.MEDIA_ROOT, "AIP_%s" % job_id)
+        log_path = os.path.join(folder, "aip.log")
+        if not os.path.exists(log_path):
+            log_path = None
+            
+        offset_path = os.path.join(folder, 'A-site_offsets.tab')
+        if not os.path.exists(offset_path):
+            offset_path = None
+        
+        profile_path = os.path.join(folder, 'A-site_profiles.tab')
+        if not os.path.exists(profile_path):
+            profile_path = None
+        
+        return render(request, 'aipservice/aip_report.html', {"job": job, "log_path": log_path, "offset_path": offset_path, "profile_path": profile_path})
     
-def get_results(request, job_id):
+class ProfileReportView(View):
+    def get(self, request, job_id):
+        job = get_object_or_404(ProfileJob, id=job_id)
+        folder = os.path.join(settings.MEDIA_ROOT, "Profile_%s" % job_id)
+        
+        log_path = os.path.join(folder, "aip.log")
+        if not os.path.exists(log_path):
+            log_path = None
+        
+        profile_path = os.path.join(folder, 'A-site_profiles.tab')
+        if not os.path.exists(profile_path):
+            profile_path = None
+        return render(request, 'aipservice/profile_report.html', {"job": job, "log_path": log_path, "profile_path": profile_path})
+    
+def get_aip_results(request, job_id):
     folder  = os.path.join(settings.MEDIA_ROOT, job_id)
     filepath = os.path.join(folder, "Results_IP_algorithm.tab")
     block = ""
