@@ -20,7 +20,7 @@ class AipJobForm(forms.ModelForm):
 class ProfileJobForm(forms.ModelForm):
     class Meta:
         model = ProfileJob
-        fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'alignment_type', 'email', )
+        fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'offset_file', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'alignment_type', 'email', )
 
 class HomeView(View):
     def get(self, request):

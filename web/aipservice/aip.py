@@ -1,16 +1,16 @@
 from __future__ import division
+import logging
 from optparse import OptionParser
 from Bio import SeqIO
 import sys
 import subprocess
 import os
 import shutil
-import logging
 from collections import OrderedDict
 import numpy as np
 import scipy.stats as stat
 
-logging.basicConfig(filename='aip.log',level=logging.DEBUG)
+logger = None
  
 CODON_TYPES = ['UUU', 'UUC', 'UUA', 'UUG', 'CUU', 'CUC', 'CUA', 'CUG', 'AUU', 'AUC', 'AUA', 'AUG', 'GUU', 'GUC', 'GUA',
                'GUG', 'UCU', 'UCC', 'UCA', 'UCG', 'CCU', 'CCC', 'CCA', 'CCG', 'ACU', 'ACC', 'ACA', 'ACG', 'GCU', 'GCC',
@@ -38,10 +38,10 @@ def processBamFile(folder,
     subprocessStr = 'samtools view ' + bam_file + ' > ' + sam_file
 
     try:
-        subprocess.call(subprocessStr, shell=True)        
+        subprocess.run(subprocessStr, shell=True, check=True)        
     except Exception:
         message = 'Samtools failed. Check the input bam file.'
-        logging.error(message)
+        logger.error(message)
         raise Exception(message)
 
     return sam_file
@@ -56,7 +56,7 @@ def processAnnotationFile(folder, species,
             annotation_file = process_gff_ecoli(annotation_file)
         else:
             message = 'GFF file is only accepted for sacCer3 and E.coli.'
-            logging.error(message)
+            logger.error(message)
             raise Exception(message)
     return annotation_file
 
@@ -71,9 +71,9 @@ def samparser_genome(sfile, frag_min, frag_max, three_prime):
     read_count = 0
     mul_read_count = 0
     if three_prime:
-        logging.info('Mapping reads by 3\' end...')
+        logger.info('Mapping reads by 3\' end...')
     else:
-        logging.info('Mapping reads by 5\' end...')
+        logger.info('Mapping reads by 5\' end...')
     counter = 0
     # Open the SAM file and parse the mapped reads according to chromosome positions, read length and strand
     with open(sfile) as sam_file:
@@ -161,11 +161,11 @@ def samparser_genome(sfile, frag_min, frag_max, three_prime):
                             dict_count[chr_no][position][-1] += 1
                             dict_mul_count[chr_no][position][pos_in_value + 1] += 1
                     except KeyError:
-                        logging.error("KeyError in parsing sam file. Line %d: %s" % (counter, line))
+                        logger.error("KeyError in parsing sam file. Line %d: %s" % (counter, line))
             counter += 1
 
-    logging.info('SAM file parsed with %d reads mapped onto %d chromosomes.' % (read_count, len(dict_count)))
-    logging.info('%d reads are multiple mapped to %d chromosomes.' % (mul_read_count, len(dict_mul_count)))
+    logger.info('SAM file parsed with %d reads mapped onto %d chromosomes.' % (read_count, len(dict_count)))
+    logger.info('%d reads are multiple mapped to %d chromosomes.' % (mul_read_count, len(dict_mul_count)))
 
     return dict_count, dict_mul_count
 
@@ -181,9 +181,9 @@ def samparser_transcriptome(sfile, frag_min, frag_max, three_prime):
     mul_read_count = 0
     discarded_reads = 0
     if three_prime:
-        logging.info('Mapping reads by 3\' end...')
+        logger.info('Mapping reads by 3\' end...')
     else:
-        logging.info('Mapping reads by 5\' end...')
+        logger.info('Mapping reads by 5\' end...')
     counter = 0
     with open(sfile) as sam_file:
         for line in sam_file:
@@ -243,11 +243,11 @@ def samparser_transcriptome(sfile, frag_min, frag_max, three_prime):
                             discarded_reads += 1
 
                     except KeyError:
-                        logging.error("KeyError in parsing sam file. Line %d: %s" % (counter, line))
+                        logger.error("KeyError in parsing sam file. Line %d: %s" % (counter, line))
             counter += 1
-    logging.info('SAM file parsed with %d reads mapped onto %d genes.' % (read_count, len(dict_count)))
-    logging.info('%d reads are multiple mapped to %d genes.' % (mul_read_count, len(dict_mul_count)))
-    logging.info('%d reads were mapped spuriously.' % discarded_reads)
+    logger.info('SAM file parsed with %d reads mapped onto %d genes.' % (read_count, len(dict_count)))
+    logger.info('%d reads are multiple mapped to %d genes.' % (mul_read_count, len(dict_mul_count)))
+    logger.info('%d reads were mapped spuriously.' % discarded_reads)
     return dict_count, dict_mul_count, total_count
 
 
@@ -276,22 +276,22 @@ def create_cds_counts_transcriptome(idx_file, seq_file, folder, sam_count_dict, 
         seq_dict[gene_id] = seq_record.seq
 
     dict_start = {}
-    logging.info('Starting to make the CDS table...')
+    logger.info('Starting to make the CDS table...')
     for gene in sam_count_dict:
         try:
             start_pos, cds_len = idx_dict[gene]
         except KeyError:
-            logging.warn('No index available for gene %s. Skip.' % gene)
+            logger.warn('No index available for gene %s. Skip.' % gene)
             continue
         # gene_count_file.write(gene + '\t' + str(total_count[gene]) + '\t' + str(cds_len) + '\n')
 
         if start_pos in [0, -1]:
-            logging.warn('No UTR region for gene %s. Skip.' % gene)
+            logger.warn('No UTR region for gene %s. Skip.' % gene)
             continue
         # If a gene has very sparse reads, it is better to leave it out as it will not meet the filtering criteria.
         # below criteria states that avg is less than 1. This is done for faster processing.
         if fast_mode and total_count[gene] < cds_len:
-            logging.warn('SPARSELY POPULATED - Being filtered: %s %d %d. Skip.' % (gene, total_count[gene], cds_len))
+            logger.warn('SPARSELY POPULATED - Being filtered: %s %d %d. Skip.' % (gene, total_count[gene], cds_len))
             continue
         dict_len[gene] = cds_len
         multi_genes = 'N'
@@ -396,7 +396,7 @@ def create_cds_counts_genome(annotation_file, genome, folder, sam_parsed_count_d
         try:
             gene_length = dict_len[gene_name]
         except KeyError:
-            logging.warn('KeyError in length calculation on gene %s. Skip.' % str(gene_name))
+            logger.warn('KeyError in length calculation on gene %s. Skip.' % str(gene_name))
             continue
 
         # dict_cds_info contains lists of CDS start and end positions as a list. For example if there are two exons for a gene X
@@ -651,20 +651,20 @@ def process_gff_ecoli(gff):
 
                         if gene_alias in dictgene:
                             if left_pos != dictgene[gene_alias][0]:
-                                logging.info('CDS for gene %s does not start at gene start. The cds start is at %d and gene start is at %d.' % (cds_name, left_pos, dictgene[gene_alias][0]))
-                                logging.info('CDS for gene %s does not stop at gene stop. The cds stop is at %d and gene stop is at %d.' % (cds_name, right_pos, dictgene[gene_alias][1]))
+                                logger.info('CDS for gene %s does not start at gene start. The cds start is at %d and gene start is at %d.' % (cds_name, left_pos, dictgene[gene_alias][0]))
+                                logger.info('CDS for gene %s does not stop at gene stop. The cds stop is at %d and gene stop is at %d.' % (cds_name, right_pos, dictgene[gene_alias][1]))
                                 problem_genes.append(cds_name)
                         else:
-                            logging.info('Gene %s only has CDS annotation.' % cds_name)
+                            logger.info('Gene %s only has CDS annotation.' % cds_name)
                         if cds_name not in dictcdsinfo:
                             dictcdsinfo[cds_name] = [left_pos, right_pos, strand]
                         else:
-                            logging.info('Second CDS present for gene %s.' % cds_name)
+                            logger.info('Second CDS present for gene %s.' % cds_name)
                             dictcdsinfo[cds_name] = [left_pos, right_pos, strand]
                         gene_length = right_pos - left_pos + 1
                         dict_len[cds_name] = gene_length
                 except IndexError:
-                    logging.warn('Something might be wrong in the GFF file. Line: %s.' % line)
+                    logger.warn('Something might be wrong in the GFF file. Line: %s.' % line)
     outfile = open("../data_files/ecoli/CDS_info.tab", 'w')
     for gene in problem_genes:
         del dictcdsinfo[gene]
@@ -741,7 +741,7 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
     complimentarydict = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
 
     dict_gene, dict_cds_count, dict_cds_info, genome_dict, overlap_genes, dict_len = cdsparser(annotation_file, genome, extra_overlap=extra_overlap)
-    logging.info('Parsed the annotation and genome files.')
+    logger.info('Parsed the annotation and genome files.')
     counter = 0
     nuc_dict = {}
     # For every gene in the dataset
@@ -750,8 +750,8 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
         try:
             gene_length = dict_len[gene_name]
         except KeyError:
-            logging.error(dict_cds_info[gene_name])
-            logging.error(dict_len[gene_name])
+            logger.error(dict_cds_info[gene_name])
+            logger.error(dict_len[gene_name])
 
         nuc_dict[gene_name] = []
         # dict_cds_info contains lists of CDS start and end positions as a list. For example if there are two exons for a gene X
@@ -773,7 +773,7 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
                     nuc = genome_dict[chr_num][pos - 1]
                 except KeyError:
                     message = 'KeyError in getting transcript sequences for chromosome %d.' % chr_num
-                    logging.error(message)
+                    logger.error(message)
                     raise Exception(message)
                 except IndexError:
                     # A gene maybe present at the extreme end of chromosome (in E.coli) and hence 50 positions downstream will not be present
@@ -783,7 +783,7 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
                     # Since the strand is negative, we take the complement of the current nucleotide
                     nuc = complimentarydict[nuc]
                 nuc_dict[gene_name].append(nuc)
-        logging.info('Got gene sequence for %s.' % gene_name)
+        logger.info('Got gene sequence for %s.' % gene_name)
         counter += 1
 
         count_file = open(os.path.join(folder,'Transcript_sequence.tab'), 'w')
@@ -829,11 +829,11 @@ def generate_asite_profiles(frag_min, frag_max, offfile, scratch, folder):
                             read_count_dict[fsize][gene][i+1] = reads_list[i - start_index]
                         except IndexError:
                             message = 'IndexError when generating read count dictionary in generating A-site profiles. Fragment size: %d, length of read list: %d, start index: %d, gene length: %d.' % (fsize, len(reads_list), start_index, length)
-                            logging.error(message)
+                            logger.error(message)
                             raise Exception(message)
                     else:
                         read_count_dict[fsize][gene][i] = reads_list[i - start_index]
-    logging.info('Parsed the CDS read counts.')
+    logger.info('Parsed the CDS read counts.')
 
     # Now we generate the A-site profiles according to offsets for specific fragment size and frames
     asite_dict = {}
@@ -858,11 +858,11 @@ def generate_asite_profiles(frag_min, frag_max, offfile, scratch, folder):
                 # Fsize and frame combinations with ambigious offsets will be of type '15/18' and hence will give value error. They will made offset=0
                 except ValueError:
                     message = 'Ambigious offset provided for generating A-site profiles. Fragment size: %d, frame: %d, offset: %s.' % (fsize, frame, offsets[fsize][frame])
-                    logging.error(message)
+                    logger.error(message)
                     raise Exception(message)
                 except IndexError:
                     message = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d.' % (fsize, frame)
-                    logging.error(message)
+                    logger.error(message)
                     raise Exception(message)
 
                 if offset != 0:
@@ -930,7 +930,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
                     if idx == 0:
                         idx += 1
 
-    logging.info('Parsed read counts for all fragment sizes.')
+    logger.info('Parsed read counts for all fragment sizes.')
 
     # Get the number of mul mapped reads to decide whether to delete the gene or not. If a gene has more than 0.1% of reads multiple mapped, we delete it
     mul_map_dict = {}
@@ -954,14 +954,14 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
         for gene in mul_map_gene_reads:
             if mul_map_gene_reads[gene] > 0:
                 if gene not in total_reads:
-                    logging.info('%s is not in total reads. It must be overlapping gene.' % gene)
+                    logger.info('%s is not in total reads. It must be overlapping gene.' % gene)
                     continue
                 else:
                     perc_mul_map = float(mul_map_gene_reads[gene]) * 100 / float(mul_map_gene_reads[gene] + total_reads[gene])
                     mulfile.write(gene + '\t' + str(perc_mul_map) + '%\t' + str(mul_map_gene_reads[gene]) + '\t' + str(total_reads[gene]) + '\n')
                     if perc_mul_map > 1:
                         mul_map_genes.append(gene)
-    logging.info('Parsed the multiple mapped read counts.')
+    logger.info('Parsed the multiple mapped read counts.')
     dict_gene = {}
     good_genes = {}
     good_genes_mul_map = {}
@@ -978,7 +978,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
     else:
         filter_genes = False
 
-    logging.info('Starting to select genes for each fragment size and frame...')
+    logger.info('Starting to select genes for each fragment size and frame...')
     for fsize in range(frag_min, frag_max + 1):
         good_genes[fsize] = {}
         good_genes_mul_map[fsize] = {}
@@ -1016,10 +1016,10 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
                     try:
                         reads.append(dict_reads[int(k)])
                     except KeyError:
-                        logging.warn("KeyError appending the number of reads for gene %s position %d length %d when selecting genes for fragment size %d." % (gene_name, k, dict_length[gene_name], fsize))
+                        logger.warn("KeyError appending the number of reads for gene %s position %d length %d when selecting genes for fragment size %d." % (gene_name, k, dict_length[gene_name], fsize))
                         short_utr = True
             except KeyError:
-                logging.warn('Length not available for gene %s when selecting genes for fragment size %d.' % (gene_name, fsize))
+                logger.warn('Length not available for gene %s when selecting genes for fragment size %d.' % (gene_name, fsize))
                 short_utr = False
             for frame in range(3):
                 if three_prime:
@@ -1154,17 +1154,17 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                         try:
                             reads.append(dict_reads[k])
                         except KeyError:
-                            logging.warn('KeyError in reads dictionary for %s at position %d with gene length %d in main analysis.' % (gene, k, dict_len[gene]))
+                            logger.warn('KeyError in reads dictionary for %s at position %d with gene length %d in main analysis.' % (gene, k, dict_len[gene]))
                             short_utr = True
                             if k > 0:
                                 skip_gene = True
-                                logging.warn('Skip gene %s.' % gene)
+                                logger.warn('Skip gene %s.' % gene)
                                 # Using break instead of continue as this will break the inner for loop and continue the outer for loop
                                 break
                 except KeyError:
                     # Length not available for this gene
                     skip_gene = True
-                    logging.warn('KeyError in length dictionary for gene %s in main analysis.' % gene)
+                    logger.warn('KeyError in length dictionary for gene %s in main analysis.' % gene)
 
                 if skip_gene:
                     # If gene does not have proper read values, we will not consider it for analysis and hence we remove it and move to next gene in the for loop
@@ -1220,7 +1220,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                     sorted_scores = sorted(sorted(score_per_offset), key=score_per_offset.get, reverse=True)
                     # Quality check to make sure the highest offset is the same as the best offset we get from our function
                     if sorted_scores[0] != offset:
-                        logging.warn('Sorted offsets do not match the offset we get from put_reads_in_orf function for gene %s in fragment size %d and frame %d.' % (gene, fsize, frame))
+                        logger.warn('Sorted offsets do not match the offset we get from put_reads_in_orf function for gene %s in fragment size %d and frame %d.' % (gene, fsize, frame))
 
                     # Difference of top two offsets
                     diff = score_per_offset[offset] - score_per_offset[sorted_scores[1]]
@@ -1246,18 +1246,18 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                         for off in list_offsets_to_compare:
                             # quality check.
                             if off > fsize:
-                                logging.warn('Unusual offset %d being considered for fsize %d frame %d in gene %s. Skip.' % (off, fsize, frame, gene))
+                                logger.warn('Unusual offset %d being considered for fsize %d frame %d in gene %s. Skip.' % (off, fsize, frame, gene))
                                 continue
                             # quality check
                             if off % 3 != 0:
-                                logging.warn('Unusual offset %d being considered for fsize %d frame %d in gene %s.' % (off, fsize, frame, gene))
+                                logger.warn('Unusual offset %d being considered for fsize %d frame %d in gene %s.' % (off, fsize, frame, gene))
                             # Getting the first 4 codon values in the particular offset
                             if three_prime:
                                 reads_offset = reads[off:off + 12]
                             else:
                                 reads_offset = reads[extra_s - off:extra_s - off + 12]
                             if not reads_offset:
-                                logging.warn('Reads offset list is empty.')
+                                logger.warn('Reads offset list is empty.')
                             # Checking the condition whether the R1 is less than one-fifth of the average of R2, R3 and R4
                             bool_off, diff_avg = secondary_selection_conditions(reads_offset, frame, threshold=off_correction_threshold)
                             # Adding this offset to the list if the condition is met
@@ -1320,7 +1320,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
         # This dict will contain the bootstrapped distributions from which the error bars will be calculated
         bootstrap_dict = {}
         dict_most_prob_offsets = {}
-        logging.info('Running the coverage analysis.')
+        logger.info('Running the coverage analysis.')
         # Get coverage statistics
         for fsize in range(frag_min, frag_max + 1):
             # Needed to create the error bars for the plot for Figure 3.
@@ -1340,7 +1340,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                         # Get the meta data of each gene from the dict_cov_info dictionary
                         read_avg = dict_cov_info[fsize][frame][gene]
                     except KeyError:
-                        logging.warn('KeyError for dict_cov_info in fragment size %d and frame %d. Skip.' % (fsize, frame))
+                        logger.warn('KeyError for dict_cov_info in fragment size %d and frame %d. Skip.' % (fsize, frame))
                         continue
                     read_avg_dict[offset].append(read_avg)
                     gene_count += 1
@@ -1577,7 +1577,7 @@ def secondary_selection_conditions(reads, frame, threshold=5):
     try:
         avg_three_codons = float(reads[3 + frame] + reads[6 + frame] + reads[9 + frame]) / 3
     except IndexError:
-        logging.warn('IndexError in calculating the average of three codens. Set it to 0.')
+        logger.warn('IndexError in calculating the average of three codens. Set it to 0.')
         avg_three_codons = 0
     bool_first = False
 
@@ -1737,6 +1737,15 @@ def bootstrap_gene_count(cutoff, list_genes):
 
     return mega_sum_dict, mega_perc_dict
 
+def set_logger(folder):
+    global logger
+    logger = logging.getLogger(__name__)
+    handler = logging.FileHandler(os.path.join(folder, "aip.log"))
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+
 def run_aip(folder, 
             species,
             bam_file, 
@@ -1754,6 +1763,9 @@ def run_aip(folder,
             include,
             alignment_type,
             get_profile):
+    # set file logger
+    set_logger(folder)
+    
     # create the scratch folder    
     scratch = os.path.join(folder, "scratch")
     if not os.path.exists(scratch):
@@ -1765,11 +1777,11 @@ def run_aip(folder,
 
     if alignment_type == "genome" :
         count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
-        logging.info('Parsed the SAM file. Starting to quantify CDS read counts.')
+        logger.info('Parsed the SAM file. Starting to quantify CDS read counts.')
         create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
     else:
         count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
-        logging.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts.')
+        logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts.')
         create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
     if get_profile:
@@ -1777,7 +1789,7 @@ def run_aip(folder,
 
     # Filter genes which have greater than threshold (default=1) reads per codon on average
     filtered_genes, dataset_gene_len = select_high_cov_genes(scratch, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
-    logging.info('Parsed the CDS file.')
+    logger.info('Parsed the CDS file.')
 
     offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_gene_pct, threshold_start_codon, three_prime)
     
@@ -1789,11 +1801,15 @@ def run_profile(folder,
                 bam_file, 
                 annotation_file, 
                 fasta_file,
+                offset_file,
                 min_frag, 
                 max_frag, 
                 three_prime, 
                 overlap, 
                 alignment_type):
+    # set filer logger
+    set_logger(folder)
+    
     # create the scratch folder    
     scratch = os.path.join(folder, "scratch")
     if not os.path.exists(scratch):
@@ -1805,11 +1821,11 @@ def run_profile(folder,
 
     if alignment_type == "genome" :
         count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
-        logging.info('Parsed the SAM file. Starting to quantify CDS read counts')
+        logger.info('Parsed the SAM file. Starting to quantify CDS read counts')
         create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
     else:
         count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
-        logging.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
+        logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
         create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
     # generate_asite_profiles(min_frag, max_frag, offset_file, scratch, folder)

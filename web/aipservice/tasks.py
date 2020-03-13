@@ -1,5 +1,6 @@
 import os
 import logging
+import datetime
 from django.conf import settings
 from celery import shared_task
 from .models import *
@@ -29,6 +30,7 @@ def aip_task(job_id,
     job = AipJob.objects.get(id = job_id)
     job.status = "RUNNING"
     job.task_id = aip_task.request.id
+    job.finish_date = datetime.datetime.now()
     job.save()
 
     # create the working folder
@@ -81,6 +83,7 @@ def profile_task(job_id,
     job = ProfileJob.objects.get(id = job_id)
     job.status = "RUNNING"
     job.task_id = profile_task.request.id
+    job.finish_date = datetime.datetime.now()
     job.save()
 
     # create the working folder
