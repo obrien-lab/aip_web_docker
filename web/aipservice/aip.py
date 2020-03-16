@@ -799,13 +799,7 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
         count_file.close()
 
 
-def generate_asite_profiles(frag_min, frag_max, offfile, scratch, folder):
-    offsets = {}
-    with open(offfile) as f:
-        for lines in f:
-            fields = lines.strip().split('\t')
-            offsets[int(fields[0])] = {0:fields[1], 1:fields[2],2:fields[3]}
-
+def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder):
     # Current support only for quantified read counts from 5' end. Offset from 3' end can be implemented.
 
     dict_len = {}
@@ -857,13 +851,11 @@ def generate_asite_profiles(frag_min, frag_max, offfile, scratch, folder):
                     offset = int(offsets[fsize][frame])
                 # Fsize and frame combinations with ambigious offsets will be of type '15/18' and hence will give value error. They will made offset=0
                 except ValueError:
-                    message = 'Ambigious offset provided for generating A-site profiles. Fragment size: %d, frame: %d, offset: %s.' % (fsize, frame, offsets[fsize][frame])
-                    logger.error(message)
-                    raise Exception(message)
+                    logger.warn = 'Ambigious offset provided for generating A-site profiles. Fragment size: %d, frame: %d, offset: %s. Skip.' % (fsize, frame, offsets[fsize][frame])
+                    offset = 0
                 except IndexError:
-                    message = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d.' % (fsize, frame)
-                    logger.error(message)
-                    raise Exception(message)
+                    logger.warn = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
+                    offset = 0
 
                 if offset != 0:
                     # Only those pos before 0 matter when offseted map to a position in CDS
@@ -885,8 +877,7 @@ def generate_asite_profiles(frag_min, frag_max, offfile, scratch, folder):
         asite_file.write(gene + '\t' + str(dict_len[gene]) + '\t' + ','.join(map(str, asite_profile)) + '\n')
 
     asite_file.close()
-
-
+    
 
 # Using cutoffs for all possible frag sizes
 def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, filter_file, include):
@@ -1545,7 +1536,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
                     perc_file.write('\tNA')
                 perc_file.write('\t')
             perc_file.write('\n')
-
+            
     return dict_most_prob_offsets
 
 
@@ -1751,7 +1742,6 @@ def run_aip(folder,
             bam_file, 
             annotation_file, 
             fasta_file,
-            offset_file,
             min_frag, 
             max_frag, 
             three_prime, 
@@ -1784,17 +1774,27 @@ def run_aip(folder,
         logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts.')
         create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
-    if get_profile:
-        generate_asite_profiles(min_frag, max_frag, offset_file, scratch, folder)
-
     # Filter genes which have greater than threshold (default=1) reads per codon on average
     filtered_genes, dataset_gene_len = select_high_cov_genes(scratch, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
     logger.info('Parsed the CDS file.')
 
     offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_gene_pct, threshold_start_codon, three_prime)
     
+    if get_profile:
+        offset_dict = {fsize: {frame: offset_dict[fsize][frame]["off"] for frame in offset_dict[fsize]} for fsize in offset_dict}
+        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
+        
     # remove the scratch folder
     shutil.rmtree(scratch)
+
+def get_offset_dict_from_file(offset_file): 
+    offsets = {}
+    with open(offset_file) as f:
+        for lines in f:
+            fields = lines.strip().split('\t')
+            offsets[int(fields[0])] = {0:fields[1], 1:fields[2], 2:fields[3]}
+
+    return offsets
 
 def run_profile(folder, 
                 species,
@@ -1828,7 +1828,8 @@ def run_profile(folder,
         logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
         create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
-    # generate_asite_profiles(min_frag, max_frag, offset_file, scratch, folder)
+    offset_dict = get_offset_dict_from_file(offset_file)
+    generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
     
     # remove the scratch folder
     shutil.rmtree(scratch)
