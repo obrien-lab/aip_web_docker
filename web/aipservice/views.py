@@ -1,7 +1,6 @@
 import os
 from celery import uuid
 from celery import current_app
-from django import forms
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,24 +8,25 @@ from django.views import View
 from django.http import JsonResponse, HttpResponse, Http404
 from django.db.models import Count
 from .tasks import *
-from .models import *
+from .forms import *
     
 FRAMES = 3
-
-class AsiteOffsetsJobForm(forms.ModelForm):
-    class Meta:
-        model = AsiteOffsetsJob
-        fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_profile', 'email', )
-        
-class AsiteProfilesJobForm(forms.ModelForm):
-    class Meta:
-        model = AsiteProfilesJob
-        fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'offset_file', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'alignment_type', 'email', )
 
 class HomeView(View):
     def get(self, request):
         return render(request, 'aipservice/home.html')
-        
+    
+class UploadDataView(View):  
+    def get(self, request):
+        form = UploadFileForm()
+        return render(request, 'aipservice/datasets.html', {'form': form})
+    
+    def post(self, request):
+        form = UploadFileForm(request.POST, request.FILES)
+
+        return render(request, 'aipservice/datasets.html', {'form': form})
+
+    
 class SubmitOffsetView(View):
     def get(self, request):
         form = AsiteOffsetsJobForm()
