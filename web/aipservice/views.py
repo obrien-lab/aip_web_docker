@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponse, Http404
+from django.db.models import Count
 from .tasks import *
 from .models import *
     
@@ -129,6 +130,16 @@ class ProfileReportView(View):
             profile_path = None
         return render(request, 'aipservice/profile_report.html', {"job": job, "log_path": log_path, "profile_path": profile_path})
     
+def get_job_statistics(request): 
+    job_count = Job.objects.count()
+    
+    q = Job.objects.annotate(Count('email', distinct=True))
+    email_count = q[0].email__count
+
+    return JsonResponse({'job_count': job_count,
+                         'email_count': email_count,
+                        })
+
 def get_aip_results(request, job_id):
     folder  = os.path.join(settings.MEDIA_ROOT, job_id)
     filepath = os.path.join(folder, "Results_IP_algorithm.tab")
