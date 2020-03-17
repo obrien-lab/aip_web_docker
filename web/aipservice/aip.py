@@ -1760,32 +1760,37 @@ def run_offset(folder,
     scratch = os.path.join(folder, "scratch")
     if not os.path.exists(scratch):
         os.makedirs(scratch)
+
+    try:
+        sam_file = processBamFile(scratch, bam_file)
+
+        annotation_file = processAnnotationFile(scratch, species, annotation_file)
+
+        if alignment_type == "genome" :
+            count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
+            logger.info('Parsed the SAM file. Starting to quantify CDS read counts.')
+            create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
+        else:
+            count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
+            logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts.')
+            create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
+
+        # Filter genes which have greater than threshold (default=1) reads per codon on average
+        filtered_genes, dataset_gene_len = select_high_cov_genes(scratch, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
+        logger.info('Parsed the CDS file.')
+
+        offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_gene_pct, threshold_start_codon, three_prime)
+
+        if get_profile:
+            offset_dict = {fsize: {frame: offset_dict[fsize][frame]["off"] for frame in offset_dict[fsize]} for fsize in offset_dict}
+            generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
         
-    sam_file = processBamFile(scratch, bam_file)
-
-    annotation_file = processAnnotationFile(scratch, species, annotation_file)
-
-    if alignment_type == "genome" :
-        count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
-        logger.info('Parsed the SAM file. Starting to quantify CDS read counts.')
-        create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
-    else:
-        count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
-        logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts.')
-        create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
-
-    # Filter genes which have greater than threshold (default=1) reads per codon on average
-    filtered_genes, dataset_gene_len = select_high_cov_genes(scratch, min_frag, max_frag, threshold_avg_reads, three_prime, filter_file, include)
-    logger.info('Parsed the CDS file.')
-
-    offset_dict = asite_algorithm_improved_second_offset_correction(filtered_genes, dataset_gene_len, min_frag, max_frag, folder, threshold_gene_pct, threshold_start_codon, three_prime)
-    
-    if get_profile:
-        offset_dict = {fsize: {frame: offset_dict[fsize][frame]["off"] for frame in offset_dict[fsize]} for fsize in offset_dict}
-        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
-        
-    # remove the scratch folder
-    shutil.rmtree(scratch)
+        # remove the scratch folder
+        shutil.rmtree(scratch)
+    except Exception as e:
+        # remove the scratch folder
+        shutil.rmtree(scratch)
+        raise e
 
 def get_offset_dict_from_file(offset_file): 
     offsets = {}
@@ -1815,21 +1820,26 @@ def run_profile(folder,
     if not os.path.exists(scratch):
         os.makedirs(scratch)
         
-    sam_file = processBamFile(scratch, bam_file)
+    try: 
+        sam_file = processBamFile(scratch, bam_file)
 
-    annotation_file = processAnnotationFile(scratch, species, annotation_file)
+        annotation_file = processAnnotationFile(scratch, species, annotation_file)
 
-    if alignment_type == "genome" :
-        count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
-        logger.info('Parsed the SAM file. Starting to quantify CDS read counts')
-        create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
-    else:
-        count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
-        logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
-        create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
+        if alignment_type == "genome" :
+            count_dict, mul_count_dict = samparser_genome(sam_file, min_frag, max_frag, three_prime)
+            logger.info('Parsed the SAM file. Starting to quantify CDS read counts')
+            create_cds_counts_genome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, min_frag, max_frag, three_prime, overlap)
+        else:
+            count_dict, mul_count_dict, total_dict = samparser_transcriptome(sam_file, min_frag, max_frag, three_prime)
+            logger.info('Parsed the SAM file aligned to the transcriptome. Starting to quantify CDS read counts')
+            create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
-    offset_dict = get_offset_dict_from_file(offset_file)
-    generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
-    
-    # remove the scratch folder
-    shutil.rmtree(scratch)
+        offset_dict = get_offset_dict_from_file(offset_file)
+        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
+        
+        # remove the scratch folder
+        shutil.rmtree(scratch)
+    except Exception as e:
+        # remove the scratch folder
+        shutil.rmtree(scratch)
+        raise e
