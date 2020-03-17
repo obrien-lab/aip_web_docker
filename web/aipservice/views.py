@@ -13,27 +13,27 @@ from .models import *
     
 FRAMES = 3
 
-class AipJobForm(forms.ModelForm):
+class AsiteOffsetsJobForm(forms.ModelForm):
     class Meta:
-        model = AipJob
+        model = AsiteOffsetsJob
         fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'filter_file', 'include', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'threshold_avg_reads', 'threshold_gene_pct', 'threshold_start_codon', 'alignment_type', 'get_profile', 'email', )
         
-class ProfileJobForm(forms.ModelForm):
+class AsiteProfilesJobForm(forms.ModelForm):
     class Meta:
-        model = ProfileJob
+        model = AsiteProfilesJob
         fields = ('species', 'bam_file', 'annotation_file', 'fasta_file', 'offset_file', 'min_frag', 'max_frag', 'three_prime', 'overlap', 'alignment_type', 'email', )
 
 class HomeView(View):
     def get(self, request):
         return render(request, 'aipservice/home.html')
         
-class SubmitAipView(View):
+class SubmitOffsetView(View):
     def get(self, request):
-        form = AipJobForm()
-        return render(request, 'aipservice/submit_aip.html', { 'form': form })
+        form = AsiteOffsetsJobForm()
+        return render(request, 'aipservice/submit_offset.html', { 'form': form })
     
     def post(self, request):
-        form = AipJobForm(request.POST, request.FILES)
+        form = AsiteOffsetsJobForm(request.POST, request.FILES)
         context = {}        
 
         if form.is_valid():
@@ -41,7 +41,7 @@ class SubmitAipView(View):
             job.status = "PENDING"
             job.save()
                 
-            task = aip_task.delay(job.id,
+            task = offset_task.delay(job.id,
                                 job.species,
                                 job.bam_file, 
                                 job.annotation_file, 
@@ -58,18 +58,18 @@ class SubmitAipView(View):
                                 job.alignment_type,
                                 job.get_profile)
             
-            return redirect('aip_report', job_id = job.id)
+            return redirect('offset_report', job_id = job.id)
         else:
             context['form'] = form
-            return render(request, 'aipservice/submit_aip.html', context)
+            return render(request, 'aipservice/submit_offset.html', context)
         
 class SubmitProfileView(View):
     def get(self, request):
-        form = ProfileJobForm()
+        form = AsiteProfilesJobForm()
         return render(request, 'aipservice/submit_profile.html', { 'form': form })
     
     def post(self, request):
-        form = ProfileJobForm(request.POST, request.FILES)
+        form = AsiteProfilesJobForm(request.POST, request.FILES)
         context = {}        
 
         if form.is_valid():
@@ -100,8 +100,8 @@ class DatasetsView(View):
 
 class AipReportView(View):
     def get(self, request, job_id):
-        job = get_object_or_404(AipJob, id=job_id)
-        folder = os.path.join(settings.MEDIA_ROOT, "AIP_%s" % job_id)
+        job = get_object_or_404(AsiteOffsetsJob, id=job_id)
+        folder = os.path.join(settings.MEDIA_ROOT, "Offset_%s" % job_id)
         log_path = os.path.join(folder, "aip.log")
         if not os.path.exists(log_path):
             log_path = None
@@ -114,11 +114,11 @@ class AipReportView(View):
         if not os.path.exists(profile_path):
             profile_path = None
         
-        return render(request, 'aipservice/aip_report.html', {"job": job, "log_path": log_path, "offset_path": offset_path, "profile_path": profile_path})
+        return render(request, 'aipservice/offset_report.html', {"job": job, "log_path": log_path, "offset_path": offset_path, "profile_path": profile_path})
     
 class ProfileReportView(View):
     def get(self, request, job_id):
-        job = get_object_or_404(ProfileJob, id=job_id)
+        job = get_object_or_404(AsiteProfilesJob, id=job_id)
         folder = os.path.join(settings.MEDIA_ROOT, "Profile_%s" % job_id)
         
         log_path = os.path.join(folder, "aip.log")
@@ -140,7 +140,7 @@ def get_job_statistics(request):
                          'email_count': email_count,
                         })
 
-def get_aip_results(request, job_id):
+def get_offset_results(request, job_id):
     folder  = os.path.join(settings.MEDIA_ROOT, job_id)
     filepath = os.path.join(folder, "Results_IP_algorithm.tab")
     block = ""

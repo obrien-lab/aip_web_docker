@@ -8,7 +8,7 @@ class Job(models.Model):
     task_id = models.CharField(max_length=256, null=True, blank=True)
     status = models.CharField(max_length=10)
     
-class AipJob(Job):  
+class AsiteOffsetsJob(Job):  
     INPUT = '/files/input'
     SPECIES_LIST = (
         ('yeast', 'S. cerevisiae'),
@@ -32,7 +32,7 @@ class AipJob(Job):
     alignment_type = models.CharField(max_length=100)
     get_profile = models.BooleanField()
     
-class ProfileJob(Job):    
+class AsiteProfilesJob(Job):    
     INPUT = '/files/input'
     SPECIES_LIST = (
         ('yeast', 'S. cerevisiae'),

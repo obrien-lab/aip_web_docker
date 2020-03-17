@@ -1737,7 +1737,7 @@ def set_logger(folder):
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
 
-def run_aip(folder, 
+def run_offset(folder, 
             species,
             bam_file, 
             annotation_file, 

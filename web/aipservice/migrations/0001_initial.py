@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='AipJob',
+            name='AsiteOffsetsJob',
             fields=[
                 ('job_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='aipservice.Job')),
                 ('species', models.CharField(choices=[('yeast', 'S. cerevisiae'), ('ecoli', 'E. coli'), ('mouse', 'Mouse'), ('other', 'Other')], max_length=10)),
@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
             bases=('aipservice.job',),
         ),
         migrations.CreateModel(
-            name='ProfileJob',
+            name='AsiteProfilesJob',
             fields=[
                 ('job_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='aipservice.Job')),
                 ('species', models.CharField(choices=[('yeast', 'S. cerevisiae'), ('ecoli', 'E. coli'), ('mouse', 'Mouse'), ('other', 'Other')], max_length=10)),

@@ -9,7 +9,7 @@ from .aip import *
 logger = logging.getLogger(__name__)
 
 @shared_task
-def aip_task(job_id,
+def offset_task(job_id,
             species,
             bam_file, 
             annotation_file, 
@@ -26,25 +26,24 @@ def aip_task(job_id,
             alignment_type = "genome",
             get_profile = False
             ):  
-    job = AipJob.objects.get(id = job_id)
+    job = AsiteOffsetsJob.objects.get(id = job_id)
     job.status = "RUNNING"
-    job.task_id = aip_task.request.id
+    job.task_id = offset_task.request.id
     job.finish_date = datetime.datetime.now()
     job.save()
 
     # create the working folder
-    folder = os.path.join(settings.MEDIA_ROOT, "AIP_%d" % job_id)
+    folder = os.path.join(settings.MEDIA_ROOT, "Offset_%d" % job_id)
     if not os.path.exists(folder):
         os.makedirs(folder)
 
     status = "SUCCESS"
     try:
-        run_aip(folder, 
+        run_offset(folder, 
                 species,
                 bam_file, 
                 annotation_file, 
                 fasta_file,
-                offset_file,
                 min_frag, 
                 max_frag, 
                 three_prime, 
@@ -61,7 +60,7 @@ def aip_task(job_id,
         status = "ERROR"
     
     # update the job status
-    job = AipJob.objects.get(id = job_id)
+    job = AsiteOffsetsJob.objects.get(id = job_id)
     job.status = status
     job.save()
     
@@ -79,7 +78,7 @@ def profile_task(job_id,
             overlap = 0, 
             alignment_type = "genome",
             ):  
-    job = ProfileJob.objects.get(id = job_id)
+    job = AsiteProfilesJob.objects.get(id = job_id)
     job.status = "RUNNING"
     job.task_id = profile_task.request.id
     job.finish_date = datetime.datetime.now()
@@ -108,7 +107,7 @@ def profile_task(job_id,
         status = "ERROR"
     
     # update the job status
-    job = ProfileJob.objects.get(id = job_id)
+    job = AsiteProfilesJob.objects.get(id = job_id)
     job.status = status
     job.save()
     
