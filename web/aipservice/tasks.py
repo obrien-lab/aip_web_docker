@@ -2,6 +2,7 @@ import os
 import logging
 import datetime
 from django.conf import settings
+from django.core.mail import send_mail
 from celery import shared_task
 from .models import *
 from .aip import *
@@ -64,6 +65,12 @@ def offset_task(job_id,
     job.status = status
     job.save()
     
+    # send notification email
+    subject = 'A-site IP job finished'
+    message = 'Your A-site IP job is finished.'
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [job.email,]
+    send_mail( subject, message, email_from, recipient_list )
 
 @shared_task
 def profile_task(job_id,
