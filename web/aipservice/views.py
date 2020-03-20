@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponse, Http404
 from django.db.models import Count
+from django.contrib.sites.models import Site
 from .tasks import *
 from .models import *
     
@@ -41,7 +42,9 @@ class SubmitOffsetView(View):
             job.status = "PENDING"
             job.save()
                 
-            task = offset_task.delay(job.id,
+            current_site = Site.objects.get_current()
+            task = offset_task.delay(current_site.domain,
+                                job.id,
                                 job.species,
                                 job.bam_file, 
                                 job.annotation_file, 
@@ -77,7 +80,9 @@ class SubmitProfileView(View):
             job.status = "PENDING"
             job.save()
                 
-            task = profile_task.delay(job.id,
+            current_site = Site.objects.get_current()
+            task = profile_task.delay(current_site.domain,
+                                job.id,
                                 job.species,
                                 job.bam_file, 
                                 job.annotation_file, 
