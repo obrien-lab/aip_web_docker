@@ -40,6 +40,7 @@ class SubmitOffsetView(View):
         if form.is_valid():
             job = form.save(commit=False)
             job.status = "PENDING"
+            job.user = request.user
             job.save()
                 
             current_site = Site.objects.get_current()
@@ -77,6 +78,7 @@ class SubmitProfileView(View):
 
         if form.is_valid():
             job = form.save(commit=False)
+            job.user = request.user
             job.status = "PENDING"
             job.save()
                 
@@ -103,7 +105,7 @@ class DatasetsView(View):
     def get(self, request):
         return render(request, 'aipservice/datasets.html')
 
-class AipReportView(View):
+class OffsetReportView(View):
     def get(self, request, job_id):
         job = get_object_or_404(AsiteOffsetsJob, id=job_id)
         folder = os.path.join(settings.MEDIA_ROOT, "Offset_%s" % job_id)
@@ -135,6 +137,16 @@ class ProfileReportView(View):
             profile_path = None
         return render(request, 'aipservice/profile_report.html', {"job": job, "log_path": log_path, "profile_path": profile_path})
     
+class JobListView(View):
+    def get(self, request):
+        jobs = [{"title": "A-site Offset Jobs", 
+                 "job_list": AsiteOffsetsJob.objects.filter(user=request.user),
+                 "link": "offset_report"},
+                {"title": "A-site Profile Jobs",
+                 "job_list": AsiteProfilesJob.objects.filter(user=request.user),
+                 "link": "profile_report"}]
+        return render(request, 'aipservice/job_list.html', {"jobs": jobs})
+
 def get_job_statistics(request): 
     job_count = Job.objects.count()
     

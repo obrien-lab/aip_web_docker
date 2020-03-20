@@ -52,6 +52,9 @@
 {% endblock %}
 
 {% block javascript %}
+<script>
+    $('#nav-job').addClass("active");
+</script>
 {% if job.status == "SUCCESS" %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
