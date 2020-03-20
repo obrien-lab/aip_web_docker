@@ -1,4 +1,4 @@
-{% load static %}
+{% load static socialaccount %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,9 +74,16 @@
                 <li id="nav-datasets"><a href="{% url 'datasets' %}">Upload Data</a></li>
                 <li id="nav-offset"><a href="{% url 'submit_offset' %}">Get A-site Offsets</a></li>
                 <li id="nav-profile"><a href="{% url 'submit_profile' %}">Get A-site Profiles</a></li>
+                <li id="nav-login"><a href="admin">Admin</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                <li id="nav-login"><a href="admin">Login</a></li>
+                <li>
+                    {% if user.is_authenticated %} 
+                    <a>Welcome, {{ user.username }} </a>
+                    {% else %}
+                    <a href="{% provider_login_url 'google' %}">Login</a>
+                    {% endif %}
+                </li>
             </ul>
         </div>
     </div>

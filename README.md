@@ -36,7 +36,8 @@ $ docker-compose up
 
 ```
 
-4. Open a web browser and go to http://0.0.0.0. You can now use the web application.
+4. Open a web browser and go to http://0.0.0.0. A superuser has already been created with both username and password being "admin". You can now use the web application.
+
 
 ### Configurations
 
@@ -55,6 +56,18 @@ You can change "../aip-files" to your preferred location.
 3. Change environment variables. The file .env stores environment variables, such as postgres username and password. You can change it for better security.
 
 4. Change Nginx configurations. You can configure the Nginx server using the file nginx/sites-enabled/django_project. 
+
+5. Add email support. The application can send an email notification to the user once a job has finished. To enable this function, put your email host server information at the bottom of file web/aip_project/settings.py. You also need to add your email account information in the file .env, e.g.
+
+```
+EMAIL_HOST_USER=myusername
+EMAIL_HOST_PASSWORD=mypassword
+
+```
+
+6. Change the default superuser. Go to the file web/start-server.sh or web/start-server-production.sh to make the changes.
+
+7. Configue authentication providers. This application uses [django-allauth](https://django-allauth.readthedocs.io/en/latest/) for user authentication. Extra configuration may be needed on the provider side. For example, to use Google account authentication, you need to register the application with Google first. Please follow the [intructions](https://django-allauth.readthedocs.io/en/latest/providers.html).
 
 ### Reference
 [1] Ahmed, N., Sormanni, P., Ciryam, P. et al. Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming. Sci Rep 9, 6256 (2019). https://doi.org/10.1038/s41598-019-42348-x

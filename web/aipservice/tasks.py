@@ -2,14 +2,25 @@ import os
 import logging
 import datetime
 from django.conf import settings
+from django.core.mail import send_mail
 from celery import shared_task
 from .models import *
 from .aip import *
 
 logger = logging.getLogger(__name__)
 
+def send_notification_mail(job, domain, job_type):
+    # send notification email
+    if settings.EMAIL_HOST_USER:
+        subject = 'A-site IP job finished'
+        message = 'Your A-site IP job is finished. Please visit %s/%s_report/%d to view the results.' % (domain, job_type, job.id)
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [job.email,]
+        send_mail( subject, message, email_from, recipient_list )
+    
 @shared_task
-def offset_task(job_id,
+def offset_task(domain,
+            job_id,
             species,
             bam_file, 
             annotation_file, 
@@ -63,10 +74,11 @@ def offset_task(job_id,
     job = AsiteOffsetsJob.objects.get(id = job_id)
     job.status = status
     job.save()
-    
+    send_notification_mail(job, domain, "offset")
 
 @shared_task
-def profile_task(job_id,
+def profile_task(domain,
+            job_id,
             species,
             bam_file, 
             annotation_file, 
@@ -110,4 +122,4 @@ def profile_task(job_id,
     job = AsiteProfilesJob.objects.get(id = job_id)
     job.status = status
     job.save()
-    
+    send_notification_mail(job, domain, "profile")
