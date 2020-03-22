@@ -12,7 +12,6 @@ class Job(models.Model):
     status = models.CharField(max_length=10)
     
 class AsiteOffsetsJob(Job):  
-    INPUT = '/files/input'
     SPECIES_LIST = (
         ('yeast', 'S. cerevisiae'),
         ('ecoli', 'E. coli'),
@@ -20,10 +19,10 @@ class AsiteOffsetsJob(Job):
         ('other', 'Other')
     )
     species = models.CharField(max_length=10, choices=SPECIES_LIST)
-    bam_file = models.FilePathField(path = INPUT)
-    annotation_file = models.FilePathField(path = INPUT)
-    fasta_file = models.FilePathField(path = INPUT)
-    filter_file = models.FilePathField(path = INPUT, null=True, blank=True)
+    bam_file = models.CharField(max_length=256)
+    annotation_file = models.CharField(max_length=256)
+    fasta_file = models.CharField(max_length=256)
+    filter_file = models.CharField(max_length=256, null=True, blank=True)
     include = models.BooleanField()
     min_frag = models.IntegerField()
     max_frag = models.IntegerField()
@@ -36,7 +35,6 @@ class AsiteOffsetsJob(Job):
     get_profile = models.BooleanField()
     
 class AsiteProfilesJob(Job):    
-    INPUT = '/files/input'
     SPECIES_LIST = (
         ('yeast', 'S. cerevisiae'),
         ('ecoli', 'E. coli'),
@@ -44,10 +42,10 @@ class AsiteProfilesJob(Job):
         ('other', 'Other')
     )
     species = models.CharField(max_length=10, choices=SPECIES_LIST)
-    bam_file = models.FilePathField(path = INPUT)
-    annotation_file = models.FilePathField(path = INPUT)
-    fasta_file = models.FilePathField(path = INPUT)
-    offset_file = models.FilePathField(path = INPUT)
+    bam_file = models.CharField(max_length=256)
+    annotation_file = models.CharField(max_length=256)
+    fasta_file = models.CharField(max_length=256)
+    offset_file = models.CharField(max_length=256)
     min_frag = models.IntegerField()
     max_frag = models.IntegerField()
     three_prime = models.BooleanField()

@@ -1,10 +1,30 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div>
-  <form method="post" enctype="multipart/form-data">
+  <h4>Default files</h4>
+  <ul>
+  {% for file in default_files %}
+      <li><i>{{ file }}</i></li>
+  {% empty %}
+      (None)
+  {% endfor %}
+  </ul>
+  <h4>My files</h4>
+  <ul>
+  {% for file in my_files %}
+      <li><i>{{ file }}</i> <a href="#"><span class="glyphicon glyphicon-trash"></span></a> </li>
+  {% empty %}
+      (None)
+  {% endfor %}
+  </ul>
+  <form method="post" enctype="multipart/form-data" class="form-inline">
     {% csrf_token %}
-    <input type="file" name="file">
-    <button class="btn btn-primary" type="submit">Upload</button>
+    <div class="form-group">
+      <input type="file" name="file" required="" class="form-control">
+    </div>
+      <button class="btn btn-primary" type="submit">Upload</button>
+      <span class="error">{{form.file.errors}}</span>
   </form>
 </div>
 {% endblock %}

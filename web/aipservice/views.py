@@ -13,20 +13,36 @@ from .forms import *
     
 FRAMES = 3
 
+def list_files_in_folder(subfolder):
+    dest = os.path.join(settings.MEDIA_ROOT, 'input', subfolder)
+    files = []
+    if os.path.exists(dest):
+        files = os.listdir(dest)
+    return files
+
 class HomeView(View):
     def get(self, request):
         return render(request, 'aipservice/home.html')
     
-class UploadDataView(View):  
+class UploadDataView(View):      
     def get(self, request):
         form = UploadFileForm()
-        return render(request, 'aipservice/datasets.html', {'form': form})
-    
+        context = {'form': form, 
+                   'default_files': list_files_in_folder('default'),
+                   'my_files': list_files_in_folder(os.path.join('users', str(request.user.id)))}
+        return render(request, 'aipservice/datasets.html', context)
+                         
     def post(self, request):
         form = UploadFileForm(request.POST, request.FILES)
-
-        return render(request, 'aipservice/datasets.html', {'form': form})
-
+        if form.is_valid():
+            file = request.FILES['file']
+            dest = os.path.join(settings.MEDIA_ROOT, 'input', 'users', str(request.user.id))
+            if not os.path.exists(dest):
+                os.mkdir(dest)            
+            with open(os.path.join(dest, file.name), 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+        return redirect('datasets')
     
 class SubmitOffsetView(View):
     def get(self, request):

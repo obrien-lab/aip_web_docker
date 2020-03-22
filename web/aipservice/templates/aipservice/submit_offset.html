@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load file_list %}
 {% block css %}
 <style>
 .error {
@@ -36,12 +37,16 @@
   </div>
   <div class="form-group">
     <label>BAM file</label>
-    {{ form.bam_file }}
+    <select name="bam_file">
+      {% file_list user %}
+    </select>
     <span class="error">{{form.bam_file.errors}}</span>    
   </div>
   <div class="form-group">
     <label>Annotation file</label>
-    {{ form.annotation_file }}
+    <select name="annotation_file">
+      {% file_list user %}
+    </select>
     <span class="error">{{form.annotation_file.errors}}</span>
     <div class="form-text text-muted" id="genome-annotation">
       <p>For genome, the annotation file could be in the following format:</p>
@@ -109,7 +114,9 @@
   </div>
   <div class="form-group">
     <label>FASTA file</label>
-      {{ form.fasta_file }}
+    <select name="fasta_file">
+      {% file_list user %}
+    </select>
     <span class="error">{{form.fasta_file.errors}}</span>  
   </div>
   <div class="form-group">
@@ -141,7 +148,10 @@
   </div>
   <div class="form-group">
     <label>Filter file (optional)</label>
-    {{ form.filter_file }}
+    <select name="filter_file">
+       <option value="" disabled selected>-- Select --</option>
+      {% file_list user %}
+    </select>
     <span class="error">{{form.filter_file.errors}}</span>  
     <p class="form-text text-muted">The filter file consists of a list of genes deliminated by tab.</p>
     <div class="form-check">

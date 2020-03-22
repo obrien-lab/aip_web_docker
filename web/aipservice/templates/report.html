@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
 {% endblock %}
 {% block content %}
+<div><a href="{% url 'job_list' %}" ><span class="glyphicon glyphicon-home"></span> My Jobs</a> </div>
 <h2>{{job.name}} </h2> 
 <i>Submitted by {{ job.user.username}} on {{ job.create_date}} UTC</i>
 {% if job.status == "PENDING" %}

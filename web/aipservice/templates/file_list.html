@@ -1,0 +1,14 @@
+<optgroup label="-- Default Files --">
+{% for file in default_files %}
+  <option value="{{file.filepath}}">{{file.filename}}</option>
+{% empty %}
+    (None)
+{% endfor %}
+</optgroup>
+<optgroup label="-- My Files --">
+{% for file in my_files %}
+  <option value="{{file.filepath}}">{{file.filename}}</option>
+{% empty %}
+    (None)
+{% endfor %}
+</optgroup>
