@@ -270,3 +270,10 @@ def download(request, path):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path)
             return response
     raise Http404
+    
+def delete_file(request, file):
+    path = os.path.join(settings.MEDIA_ROOT, 'input', 'users', str(request.user.id), file)
+    if os.path.exists(path):
+        os.remove(path)
+        return redirect('datasets')
+    

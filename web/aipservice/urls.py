@@ -13,5 +13,6 @@ urlpatterns = [
   path('profile_report/<str:job_id>/', views.ProfileReportView.as_view(), name='profile_report'),
   path('ajax/get_offset_results/<str:job_id>/', views.get_offset_results, name='get_offset_results'),
   path('ajax/get_job_statistics/', views.get_job_statistics, name='get_job_statistics'),
-  path('download/<path:path>/', views.download, name='download')
+  path('download/<path:path>/', views.download, name='download'),
+  path('delete_file/<path:file>/', views.delete_file, name="delete_file")
 ]
