@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Asite IP method</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   {% block css %}{% endblock %}
   <style>
   #header {
@@ -51,6 +50,9 @@
   </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
 </head>
 <body>
   <div class="jumbotron" id="header">
@@ -108,6 +110,12 @@
     {% block content %}
     {% endblock %}
   </div>
+  <script>
+    $(".datetime").text(function() {
+      var date = new Date($(this).text());
+      return date.toLocaleString();
+    });
+  </script>
   {% block javascript %}{% endblock %}
 </body>
 </html>

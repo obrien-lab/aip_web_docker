@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
-{% block css %}
-<link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
-{% endblock %}
 {% block content %}
 <div><a href="{% url 'job_list' %}" ><span class="glyphicon glyphicon-home"></span> My Jobs</a> </div>
 <h2>{{job.name}} </h2> 
-<i>Submitted by {{ job.user.username}} on {{ job.create_date}} UTC</i>
+<i>Submitted by {{ job.user.username}} on <span class="datetime"> {{ job.create_date|date:'Y-m-d H:i T'}} </span></i>
 {% if job.status == "PENDING" %}
 <h4>Status: <span class="label label-default">{{job.status}}</span></h4>
 <div>

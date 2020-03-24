@@ -13,7 +13,7 @@
       {% for job in dict.job_list %}
         <tr>
           <td><a href="{% url dict.link job.id %}">{{job.name}}</a> </td>
-          <td>{{job.create_date}}</td>
+          <td class="datetime">{{job.create_date|date:'Y-m-d H:i T'}}</td>
           <td>{{job.status}}</td>
         </tr>
       {% endfor %}
@@ -25,5 +25,6 @@
 {% block javascript %}
 <script>
   $("#nav-job").addClass("active");
+  $('table').DataTable();
 </script>
 {% endblock %}
