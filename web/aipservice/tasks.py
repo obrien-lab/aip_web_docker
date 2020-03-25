@@ -18,7 +18,7 @@ def send_notification_mail(job, domain, job_type):
         recipient_list = [job.email,]
         send_mail( subject, message, email_from, recipient_list )
     
-@shared_task
+@shared_task(soft_time_limit=18000, time_limit=18060)
 def offset_task(domain,
             job_id,
             species,
@@ -76,7 +76,7 @@ def offset_task(domain,
     job.save()
     send_notification_mail(job, domain, "offset")
 
-@shared_task
+@shared_task(soft_time_limit=18000, time_limit=18060)
 def profile_task(domain,
             job_id,
             species,
