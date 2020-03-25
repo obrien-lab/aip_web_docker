@@ -1,4 +1,5 @@
 import os
+import json
 from celery import uuid
 from celery import current_app
 from django.conf import settings
@@ -165,12 +166,17 @@ class JobListView(View):
 
 def get_job_statistics(request): 
     job_count = Job.objects.count()
-    
-    q = Job.objects.annotate(Count('email', distinct=True))
-    email_count = q[0].email__count
+    user_count = User.objects.count()
+    github_stats = None
+    if 'GITHUB_STATS_FILE' in os.environ:
+        filepath = os.path.join(settings.MEDIA_ROOT, os.environ['GITHUB_STATS_FILE'])
+        if os.path.exists(filepath):
+            with open(filepath, 'r') as f:
+                github_stats = json.load(f)
 
     return JsonResponse({'job_count': job_count,
-                         'email_count': email_count,
+                         'user_count': user_count,
+                         'github_stats': github_stats
                         })
 
 def get_offset_results(request, job_id):

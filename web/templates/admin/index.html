@@ -26,8 +26,18 @@
         <p>Jobs</p>
     </div>
     <div class="col-sm-4 admin-stats">
-        <h2 id="email"></h2>
-        <p>Distinct Emails</p>
+        <h2 id="user"></h2>
+        <p>Users</p>
+    </div>    
+</div>
+<div class="row">
+    <div class="col-sm-4 admin-stats">
+        <h2 id="github-view"></h2>
+        <p>Github Views</p>
+    </div>
+    <div class="col-sm-4 admin-stats">
+        <h2 id="github-clone"></h2>
+        <p>Github Clones</p>
     </div>
 </div>
     
@@ -38,7 +48,14 @@
         dataType: 'json',
         success: function (data) {
             $('#job').text(data['job_count']);
-            $('#email').text(data['email_count']);
+            $('#user').text(data['user_count']);
+            if (data['github_stats']) {
+                $('#github-view').text(data['github_stats']['views']);
+                $('#github-clone').text(data['github_stats']['clones']);
+            } else {
+                $('#github-view').parent().remove();
+                $('#github-clone').parent().remove();
+            }
         }
     })
   });
