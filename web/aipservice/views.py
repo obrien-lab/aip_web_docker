@@ -43,7 +43,13 @@ class UploadDataView(View):
             with open(os.path.join(dest, file.name), 'wb+') as destination:
                 for chunk in file.chunks():
                     destination.write(chunk)
-        return redirect('datasets')
+            return redirect('datasets')
+        else:
+            context = {'form': form, 
+                       'default_files': list_files_in_folder('default'),
+                       'my_files': list_files_in_folder(os.path.join('users', str(request.user.id)))}
+            return render(request, 'aipservice/datasets.html', context)
+        
     
 class SubmitOffsetView(View):
     def get(self, request):

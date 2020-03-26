@@ -132,6 +132,9 @@ if not os.path.exists(STATIC_ROOT):
 MEDIA_ROOT = '/files/'
 if not os.path.exists(MEDIA_ROOT):
     os.makedirs(MEDIA_ROOT)
+    
+MAX_FOLDER_SIZE = 600000000000 # 600 GB
+MAX_FILE_SIZE = 20000000000 # 20 GB
 
 # celery
 CELERY_BROKER_URL = 'redis://redis:6379/0'
