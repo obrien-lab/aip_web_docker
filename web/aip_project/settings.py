@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount', 
+    'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google'
 ]
 
@@ -160,7 +161,21 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         }
-    }
+    },
+    'facebook':
+       {'METHOD': 'oauth2',
+        'SCOPE': ['public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'FIELDS': [
+            'id',
+            'name',
+            'first_name',
+            'last_name'
+            ],
+        'EXCHANGE_TOKEN': True,
+        'LOCALE_FUNC': lambda request: 'kr_KR',
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v2.4'}
 }
 
 if 'EMAIL_HOST_USER' in os.environ:

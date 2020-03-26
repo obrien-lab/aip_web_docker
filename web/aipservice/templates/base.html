@@ -104,7 +104,8 @@
                 </a>
                 <ul class="dropdown-menu">
                   <li><a href="{% provider_login_url 'google' %}">Google Account</a></li>
-                    <li><a href="{% url 'admin:login'%}">Admin</a></li>
+                  <li><a href="{% provider_login_url 'facebook' method='oauth2' %}">Facebook Account</a></li>
+                  <li><a href="{% url 'admin:login'%}">Admin</a></li>
                 </ul>
               </li>
             {% endif %}
