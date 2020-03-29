@@ -9,6 +9,7 @@ from django.views import View
 from django.http import JsonResponse, HttpResponse, Http404
 from django.db.models import Count
 from django.contrib.sites.models import Site
+from django.core.exceptions import PermissionDenied
 from .tasks import *
 from .forms import *
     
@@ -27,6 +28,9 @@ class HomeView(View):
     
 class UploadDataView(View):      
     def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+    
         form = UploadFileForm()
         context = {'form': form, 
                    'default_files': list_files_in_folder('default'),
@@ -34,6 +38,8 @@ class UploadDataView(View):
         return render(request, 'aipservice/datasets.html', context)
                          
     def post(self, request):
+        if not request.user.is_authenticated:
+            raise PermissionDenied
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
@@ -53,10 +59,16 @@ class UploadDataView(View):
     
 class SubmitOffsetView(View):
     def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+        
         form = AsiteOffsetsJobForm()
         return render(request, 'aipservice/submit_offset.html', { 'form': form })
     
     def post(self, request):
+        if not request.user.is_authenticated:
+            raise PermissionDenied
+        
         form = AsiteOffsetsJobForm(request.POST, request.FILES)
         context = {}        
 
@@ -92,10 +104,16 @@ class SubmitOffsetView(View):
         
 class SubmitProfileView(View):
     def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+        
         form = AsiteProfilesJobForm()
         return render(request, 'aipservice/submit_profile.html', { 'form': form })
     
     def post(self, request):
+        if not request.user.is_authenticated:
+            raise PermissionDenied
+        
         form = AsiteProfilesJobForm(request.POST, request.FILES)
         context = {}        
 
@@ -124,13 +142,13 @@ class SubmitProfileView(View):
             context['form'] = form
             return render(request, 'aipservice/submit_profile.html', context)
 
-class DatasetsView(View):
-    def get(self, request):
-        return render(request, 'aipservice/datasets.html')
-
 class OffsetReportView(View):
     def get(self, request, job_id):
         job = get_object_or_404(AsiteOffsetsJob, id=job_id)
+        
+        if not (request.user.is_superuser or job.user == request.user):
+            raise PermissionDenied
+            
         folder = os.path.join(settings.MEDIA_ROOT, "Offset_%s" % job_id)
         log_path = os.path.join(folder, "aip.log")
         if not os.path.exists(log_path):
@@ -147,8 +165,12 @@ class OffsetReportView(View):
         return render(request, 'aipservice/offset_report.html', {"job": job, "log_path": log_path, "offset_path": offset_path, "profile_path": profile_path})
     
 class ProfileReportView(View):
-    def get(self, request, job_id):
+    def get(self, request, job_id):    
         job = get_object_or_404(AsiteProfilesJob, id=job_id)
+        
+        if not (request.user.is_superuser or job.user == request.user):
+            raise PermissionDenied
+            
         folder = os.path.join(settings.MEDIA_ROOT, "Profile_%s" % job_id)
         
         log_path = os.path.join(folder, "aip.log")
@@ -162,6 +184,9 @@ class ProfileReportView(View):
     
 class JobListView(View):
     def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+        
         jobs = [{"title": "A-site Offset Jobs", 
                  "job_list": AsiteOffsetsJob.objects.filter(user=request.user),
                  "link": "offset_report"},
@@ -171,6 +196,9 @@ class JobListView(View):
         return render(request, 'aipservice/job_list.html', {"jobs": jobs})
 
 def get_job_statistics(request): 
+    if not request.user.is_superuser:
+        raise PermissionDenied
+            
     job_count = Job.objects.count()
     user_count = User.objects.count()
     github_stats = None
