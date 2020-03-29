@@ -62,44 +62,36 @@
     </div>
   </div>
   <nav class="navbar">
-    <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-        </div>
-        <div class="collapse navbar-collapse" id="myNavbar">
-          <ul class="nav navbar-nav">
-            <li id="nav-home"><a href="{% url 'home' %}">Home</a></li>
-            <li id="nav-datasets"><a href="{% url 'datasets' %}">Upload Data</a></li>
-            <li id="nav-offset"><a href="{% url 'submit_offset' %}">Get A-site Offsets</a></li>
-            <li id="nav-profile"><a href="{% url 'submit_profile' %}">Get A-site Profiles</a></li>
-            <li id="nav-job"><a href="{% url 'job_list' %}">My Jobs</a></li>
-            {% if user.is_superuser %}
-              <li id="nav-login"><a href="{% url 'admin:index' %}">Admin</a></li>
-            {% endif %}
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            {% if user.is_authenticated %} 
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                  <span class="glyphicon glyphicon-user"></span> {{ user.username }} <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu">
-                  {% if user.is_superuser %}
-                    <li><a href="{% url 'admin:logout' %}">Logout</a></li>
-                  {% else %}
-                    <li><a href="{% url 'account_logout' %}">Logout</a></li>
-                  {% endif %}
-                </ul>
-              </li>
-            {% else %}
-              <li><a href="{% url 'account_login' %}"><span class="glyphicon glyphicon-user"></span> Login</a></li>
-            {% endif %}
-          </ul>
-        </div>
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li id="nav-home"><a href="{% url 'home' %}">Home</a></li>
+        <li id="nav-datasets"><a href="{% url 'datasets' %}">Upload Data</a></li>
+        <li id="nav-offset"><a href="{% url 'submit_offset' %}">Get A-site Offsets</a></li>
+        <li id="nav-profile"><a href="{% url 'submit_profile' %}">Get A-site Profiles</a></li>
+        <li id="nav-job"><a href="{% url 'job_list' %}">My Jobs</a></li>
+        {% if user.is_superuser %}
+          <li id="nav-login"><a href="{% url 'admin:index' %}">Admin</a></li>
+        {% endif %}
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        {% if user.is_authenticated %} 
+          <li><a href="#">Welcome, {{ user }}</a></li>
+          {% if user.is_superuser %}
+            <li><a href="{% url 'admin:logout' %}">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+          {% else %}
+            <li><a href="{% url 'account_logout' %}">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+          {% endif %}
+        {% else %}
+          <li><a href="{% url 'account_login' %}"><span class="glyphicon glyphicon-user"></span> Login</a></li>
+        {% endif %}
+      </ul>
     </div>
   </nav>
   <div class="container">

@@ -34,7 +34,10 @@ class UploadDataView(View):
         form = UploadFileForm()
         context = {'form': form, 
                    'default_files': list_files_in_folder('default'),
-                   'my_files': list_files_in_folder(os.path.join('users', str(request.user.id)))}
+                   'my_files': list_files_in_folder(os.path.join('users', str(request.user.id))),
+                   'max_upload_size': get_max_upload_size(),
+                   'max_store_days': settings.MAX_STORE_DAYS
+                  }
         return render(request, 'aipservice/datasets.html', context)
                          
     def post(self, request):
@@ -53,7 +56,10 @@ class UploadDataView(View):
         else:
             context = {'form': form, 
                        'default_files': list_files_in_folder('default'),
-                       'my_files': list_files_in_folder(os.path.join('users', str(request.user.id)))}
+                       'my_files': list_files_in_folder(os.path.join('users', str(request.user.id))),
+                       'max_upload_size': get_max_upload_size(),
+                       'max_store_days': settings.MAX_STORE_DAYS
+                      }
             return render(request, 'aipservice/datasets.html', context)
         
     

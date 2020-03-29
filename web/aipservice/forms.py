@@ -6,15 +6,19 @@ from django.utils.translation import ugettext_lazy as _
 from pathlib import Path
 from .models import *
 
+def get_max_upload_size():
+    root_directory = Path(os.path.join(settings.MEDIA_ROOT, 'input', 'users'))
+    current_size = sum(f.stat().st_size for f in root_directory.glob('**/*') if f.is_file() )
+    remaining_size = settings.MAX_FOLDER_SIZE - current_size        
+    max_upload_size = min(settings.MAX_FILE_SIZE, remaining_size)
+    return max_upload_size
+        
 class UploadFileForm(forms.Form):
     file = forms.FileField()
     
     def clean_file(self):
         file = self.cleaned_data['file']
-        root_directory = Path(os.path.join(settings.MEDIA_ROOT, 'input', 'users'))
-        current_size = sum(f.stat().st_size for f in root_directory.glob('**/*') if f.is_file() )
-        remaining_size = settings.MAX_FOLDER_SIZE - current_size        
-        max_upload_size = min(settings.MAX_FILE_SIZE, remaining_size)
+        max_upload_size = get_max_upload_size()
         
         if max_upload_size <= 0:
             raise forms.ValidationError(_('Not enough space. Please check back later.'))

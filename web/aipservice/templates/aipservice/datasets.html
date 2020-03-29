@@ -17,6 +17,7 @@
   {% endfor %}
   </ul>
   <h4>My files</h4>
+  <p>Notes: each file is stored for up to {{max_store_days}} days; max upload size is {{max_upload_size|filesizeformat}}. </p>
   <ul>
   {% for file in my_files %}
       <li><i>{{ file }}</i> <a href="{% url 'delete_file' file %}" onclick="return confirm('Are you sure that you want to delete the file?')"><span class="glyphicon glyphicon-trash"></span></a> </li>
