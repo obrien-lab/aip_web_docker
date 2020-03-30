@@ -1428,7 +1428,7 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
     """
     ***    WRITE THE RESULTS AND PLOT DISTRIBUTION OF OFFSETS ***
     """
-    outfile = open(os.path.join(folder, "Results_IP_algorithm.tab"), "w")
+    outfile = open(os.path.join(folder, "A-site_offsets.tab"), "w")
     perc_file = open(os.path.join(folder, "Perc_of_genes_for_all_offsets.tab"), "w")
 
     outfile.write('\n\nMost probable Offsets for Fragment Size and Frame (including coverage data)\n')

@@ -9,6 +9,7 @@ def list_files_in_folder(subfolder):
     files = []
     if os.path.exists(dest):
         files = os.listdir(dest)
+        files.sort()
     return [{'filename': file, 'filepath': os.path.join(dest, file) } for file in files]
 
 @register.inclusion_tag('file_list.html')

@@ -39,8 +39,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount', 
-    'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.github'
+    'allauth.socialaccount.providers.google'
 ]
 
 MIDDLEWARE = [
@@ -154,6 +153,13 @@ AUTHENTICATION_BACKENDS = (
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'],
+        'AUTH_PARAMS': {'access_type': 'online'}
+        }
+}
 
 if 'EMAIL_HOST_USER' in os.environ:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

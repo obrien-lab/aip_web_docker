@@ -20,11 +20,17 @@ def list_files_in_folder(subfolder):
     files = []
     if os.path.exists(dest):
         files = os.listdir(dest)
+        files.sort()
     return files
 
 class HomeView(View):
     def get(self, request):
         return render(request, 'aipservice/home.html')
+    
+class UserProfileView(View):
+    def get(self, request):
+        return render(request, 'aipservice/user_profile.html')    
+    
     
 class UploadDataView(View):      
     def get(self, request):
@@ -164,11 +170,15 @@ class OffsetReportView(View):
         if not os.path.exists(offset_path):
             offset_path = None
         
+        perc_gene_path = os.path.join(folder, 'Perc_of_genes_for_all_offsets.tab')
+        if not os.path.exists(perc_gene_path):
+            perc_gene_path = None
+
         profile_path = os.path.join(folder, 'A-site_profiles.tab')
         if not os.path.exists(profile_path):
             profile_path = None
         
-        return render(request, 'aipservice/offset_report.html', {"job": job, "log_path": log_path, "offset_path": offset_path, "profile_path": profile_path})
+        return render(request, 'aipservice/offset_report.html', {"job": job, "log_path": log_path, "offset_path": offset_path, "perc_gene_path": perc_gene_path, "profile_path": profile_path})
     
 class ProfileReportView(View):
     def get(self, request, job_id):    
@@ -220,8 +230,8 @@ def get_job_statistics(request):
                         })
 
 def get_offset_results(request, job_id):
-    folder  = os.path.join(settings.MEDIA_ROOT, job_id)
-    filepath = os.path.join(folder, "Results_IP_algorithm.tab")
+    folder  = os.path.join(settings.MEDIA_ROOT, "Offset_%s" % job_id)
+    filepath = os.path.join(folder, "A-site_offsets.tab")
     block = ""
     
     # offsets for each fragment size and frame 

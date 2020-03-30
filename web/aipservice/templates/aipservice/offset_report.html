@@ -3,9 +3,10 @@
 <div>
   <h4>Download</h4>
   <ul>
-    {% if offset_path %}<li><a href="{% url 'download' offset_path %}">A-site_offsets.tab</a></li>{% endif %}
-    {% if profile_path %}<li><a href="{% url 'download' profile_path %}">A-site_profiles.tab</a></li>{% endif %}
-    {% if log_path %}<li><a href="{% url 'download' log_path %}">aip.log</a></li>{% endif %}
+    {% if offset_path %}<li><a href="{% url 'download' offset_path %}" download>A-site_offsets.tab</a></li>{% endif %}
+    {% if perc_gene_path %}<li><a href="{% url 'download' perc_gene_path %}" download>Perc_of_genes_for_all_offsets.tab</a></li>{% endif %}
+    {% if profile_path %}<li><a href="{% url 'download' profile_path %}" download>A-site_profiles.tab</a></li>{% endif %}
+    {% if log_path %}<li><a href="{% url 'download' log_path %}" download>aip.log</a></li>{% endif %}
   </ul> 
 </div>
 {% if job.status == "SUCCESS" %}
