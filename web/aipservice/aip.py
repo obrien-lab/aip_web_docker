@@ -38,7 +38,7 @@ def processBamFile(folder,
     subprocessStr = 'samtools view ' + bam_file + ' > ' + sam_file
 
     try:
-        subprocess.run(subprocessStr, shell=True, check=True)        
+        subprocess.run(subprocessStr, shell=True)        
     except Exception:
         message = 'Samtools failed. Check the input bam file.'
         logger.error(message)
@@ -291,7 +291,6 @@ def create_cds_counts_transcriptome(idx_file, seq_file, folder, sam_count_dict, 
         # If a gene has very sparse reads, it is better to leave it out as it will not meet the filtering criteria.
         # below criteria states that avg is less than 1. This is done for faster processing.
         if fast_mode and total_count[gene] < cds_len:
-            logger.warn('SPARSELY POPULATED - Being filtered: %s %d %d. Skip.' % (gene, total_count[gene], cds_len))
             continue
         dict_len[gene] = cds_len
         multi_genes = 'N'
@@ -945,7 +944,7 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
         for gene in mul_map_gene_reads:
             if mul_map_gene_reads[gene] > 0:
                 if gene not in total_reads:
-                    logger.info('%s is not in total reads. It must be overlapping gene.' % gene)
+                    # the gene is not in total reads. It must be overlapping gene. skip.
                     continue
                 else:
                     perc_mul_map = float(mul_map_gene_reads[gene]) * 100 / float(mul_map_gene_reads[gene] + total_reads[gene])
