@@ -272,7 +272,7 @@ def get_offset_results(request, job_id):
                 elif line[0] != "F":
                     row = line.split('\t')
                     while len(row) < 4:
-                        row = row.append("NA")
+                        row.append("NA")
                     probable_offsets.append(row)
             else: 
                 # genes distribution
