@@ -35,7 +35,7 @@ class UserProfileView(View):
 class UploadDataView(View):      
     def get(self, request):
         if not request.user.is_authenticated:
-            return redirect('accounts/login')
+            return redirect('account_login')
     
         form = UploadFileForm()
         context = {'form': form, 
@@ -72,7 +72,7 @@ class UploadDataView(View):
 class SubmitOffsetView(View):
     def get(self, request):
         if not request.user.is_authenticated:
-            return redirect('accounts/login')
+            return redirect('account_login')
         
         form = AsiteOffsetsJobForm()
         return render(request, 'aipservice/submit_offset.html', { 'form': form })
@@ -117,7 +117,7 @@ class SubmitOffsetView(View):
 class SubmitProfileView(View):
     def get(self, request):
         if not request.user.is_authenticated:
-            return redirect('accounts/login')
+            return redirect('account_login')
         
         form = AsiteProfilesJobForm()
         return render(request, 'aipservice/submit_profile.html', { 'form': form })
@@ -159,7 +159,7 @@ class OffsetReportView(View):
         job = get_object_or_404(AsiteOffsetsJob, id=job_id)
         
         if not request.user.is_authenticated:
-            return redirect('accounts/login')
+            return redirect('account_login')
         elif not (request.user.is_superuser or job.user == request.user):
             raise PermissionDenied
             
@@ -187,7 +187,7 @@ class ProfileReportView(View):
         job = get_object_or_404(AsiteProfilesJob, id=job_id)
         
         if not request.user.is_authenticated:
-            return redirect('accounts/login')
+            return redirect('account_login')
         elif not (request.user.is_superuser or job.user == request.user):
             raise PermissionDenied
             
@@ -205,7 +205,7 @@ class ProfileReportView(View):
 class JobListView(View):
     def get(self, request):
         if not request.user.is_authenticated:
-            return redirect('accounts/login')
+            return redirect('account_login')
         
         jobs = [{"title": "A-site Offset Jobs", 
                  "job_list": AsiteOffsetsJob.objects.filter(user=request.user),
@@ -270,7 +270,10 @@ def get_offset_results(request, job_id):
                 if len(line) == 0:
                     block = ""
                 elif line[0] != "F":
-                    probable_offsets.append(line.split('\t'))
+                    row = line.split('\t')
+                    while len(row) < 4:
+                        row = row.append("NA")
+                    probable_offsets.append(row)
             else: 
                 # genes distribution
                 if line == NUMBER_OF_GENES:
@@ -280,10 +283,7 @@ def get_offset_results(request, job_id):
                     if len(line) == 0:
                         block = ""
                     elif line[0] != "F":
-                        row = line.split('\t')
-                        while len(row) < 4:
-                            row = row.append("NA")
-                        genes.append(row)
+                        genes.append(line.split('\t'))
                 else: 
                     # reads distribution
                     if line == NUMBER_OF_READS:
