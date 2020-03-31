@@ -158,7 +158,9 @@ class OffsetReportView(View):
     def get(self, request, job_id):
         job = get_object_or_404(AsiteOffsetsJob, id=job_id)
         
-        if not (request.user.is_superuser or job.user == request.user):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+        elif not (request.user.is_superuser or job.user == request.user):
             raise PermissionDenied
             
         folder = os.path.join(settings.MEDIA_ROOT, "Offset_%s" % job_id)
@@ -184,7 +186,9 @@ class ProfileReportView(View):
     def get(self, request, job_id):    
         job = get_object_or_404(AsiteProfilesJob, id=job_id)
         
-        if not (request.user.is_superuser or job.user == request.user):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+        elif not (request.user.is_superuser or job.user == request.user):
             raise PermissionDenied
             
         folder = os.path.join(settings.MEDIA_ROOT, "Profile_%s" % job_id)
@@ -276,7 +280,10 @@ def get_offset_results(request, job_id):
                     if len(line) == 0:
                         block = ""
                     elif line[0] != "F":
-                        genes.append(line.split('\t'))
+                        row = line.split('\t')
+                        while len(row) < 4:
+                            row = row.append("NA")
+                        genes.append(row)
                 else: 
                     # reads distribution
                     if line == NUMBER_OF_READS:
