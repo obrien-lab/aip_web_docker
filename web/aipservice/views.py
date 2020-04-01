@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 from celery import uuid
 from celery import current_app
 from django.conf import settings
@@ -25,26 +26,36 @@ def list_files_in_folder(subfolder):
 
 class HomeView(View):
     def get(self, request):
-        return render(request, 'aipservice/home.html')
+        return render(request, 'aipservice/home.html', {'max_file_size': settings.MAX_FILE_SIZE, 'max_store_days': settings.MAX_STORE_DAYS})
     
 class UserProfileView(View):
     def get(self, request):
         return render(request, 'aipservice/user_profile.html')    
     
     
-class UploadDataView(View):      
+class UploadDataView(View):
+    def get_context(self, user_id, form):
+        files = [[file, os.path.join(settings.MEDIA_ROOT, 'input', 'users', user_id, file)] for file in list_files_in_folder(os.path.join('users', user_id))]
+        
+        my_files = [{"name": item[0], 
+                     "datetime": datetime.datetime.fromtimestamp(os.stat(item[1]).st_mtime),
+                     'size': os.path.getsize(item[1])
+                    } for item in files]
+        
+        context = {'form': form, 
+                   'default_files': list_files_in_folder('default'),
+                   'my_files': my_files,
+                   'max_upload_size': get_max_upload_size(),
+                   'max_store_days': settings.MAX_STORE_DAYS
+                  }
+        return context
+    
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('account_login')
     
-        form = UploadFileForm()
-        context = {'form': form, 
-                   'default_files': list_files_in_folder('default'),
-                   'my_files': list_files_in_folder(os.path.join('users', str(request.user.id))),
-                   'max_upload_size': get_max_upload_size(),
-                   'max_store_days': settings.MAX_STORE_DAYS
-                  }
-        return render(request, 'aipservice/datasets.html', context)
+        form = UploadFileForm()        
+        return render(request, 'aipservice/datasets.html', self.get_context(str(request.user.id), form))
                          
     def post(self, request):
         if not request.user.is_authenticated:
@@ -60,13 +71,7 @@ class UploadDataView(View):
                     destination.write(chunk)
             return redirect('datasets')
         else:
-            context = {'form': form, 
-                       'default_files': list_files_in_folder('default'),
-                       'my_files': list_files_in_folder(os.path.join('users', str(request.user.id))),
-                       'max_upload_size': get_max_upload_size(),
-                       'max_store_days': settings.MAX_STORE_DAYS
-                      }
-            return render(request, 'aipservice/datasets.html', context)
+            return render(request, 'aipservice/datasets.html', self.get_context(str(request.user.id), form))
         
     
 class SubmitOffsetView(View):
@@ -157,6 +162,7 @@ class SubmitProfileView(View):
 class OffsetReportView(View):
     def get(self, request, job_id):
         job = get_object_or_404(AsiteOffsetsJob, id=job_id)
+        species = job.get_species_display()
         
         if not request.user.is_authenticated:
             return redirect('account_login')
@@ -180,11 +186,12 @@ class OffsetReportView(View):
         if not os.path.exists(profile_path):
             profile_path = None
         
-        return render(request, 'aipservice/offset_report.html', {"job": job, "log_path": log_path, "offset_path": offset_path, "perc_gene_path": perc_gene_path, "profile_path": profile_path})
+        return render(request, 'aipservice/offset_report.html', {"job": job, "species": species, "log_path": log_path, "offset_path": offset_path, "perc_gene_path": perc_gene_path, "profile_path": profile_path})
     
 class ProfileReportView(View):
     def get(self, request, job_id):    
         job = get_object_or_404(AsiteProfilesJob, id=job_id)
+        species = job.get_species_display()
         
         if not request.user.is_authenticated:
             return redirect('account_login')
@@ -200,7 +207,7 @@ class ProfileReportView(View):
         profile_path = os.path.join(folder, 'A-site_profiles.tab')
         if not os.path.exists(profile_path):
             profile_path = None
-        return render(request, 'aipservice/profile_report.html', {"job": job, "log_path": log_path, "profile_path": profile_path})
+        return render(request, 'aipservice/profile_report.html', {"job": job, "species": species, "log_path": log_path, "profile_path": profile_path})
     
 class JobListView(View):
     def get(self, request):

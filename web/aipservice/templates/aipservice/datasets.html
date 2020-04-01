@@ -8,7 +8,7 @@
 {% endblock %}
 {% block content %}
 <div>
-  <h4>Default files</h4>
+  <h3>Default files</h3>
   <ul>
   {% for file in default_files %}
       <li><i>{{ file }}</i></li>
@@ -16,15 +16,25 @@
       (None)
   {% endfor %}
   </ul>
-  <h4>My files</h4>
+  <h3>My files</h3>
   <p>Notes: each file is stored for up to {{max_store_days}} days; max upload size is {{max_upload_size|filesizeformat}}. </p>
-  <ul>
-  {% for file in my_files %}
-      <li><i>{{ file }}</i> <a href="{% url 'delete_file' file %}" onclick="return confirm('Are you sure that you want to delete the file?')"><span class="glyphicon glyphicon-trash"></span></a> </li>
-  {% empty %}
-      (None)
-  {% endfor %}
-  </ul>
+
+  <table class="table table-bordered">
+    <thead>
+      <th>File</th>
+      <th>Size</th>
+      <th>Uploaded</th>
+    </thead>
+    <tbody>
+      {% for file in my_files %}
+        <tr>
+          <td>{{ file.name }}</td>
+          <td>{{ file.size|filesizeformat}}</td>
+          <td class="datetime">{{ file.datetime|date:'Y-m-d H:i T' }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
   <form method="post" enctype="multipart/form-data" class="form-inline">
     {% csrf_token %}
     <div class="form-group">
@@ -39,5 +49,6 @@
 {% block javascript %}
 <script>
   $("#nav-datasets").addClass("active");
+  $('table').DataTable();
 </script>
 {% endblock %}
