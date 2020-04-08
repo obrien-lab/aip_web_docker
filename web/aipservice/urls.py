@@ -14,5 +14,6 @@ urlpatterns = [
   path('ajax/get_offset_results/<str:job_id>/', views.get_offset_results, name='get_offset_results'),
   path('ajax/get_job_statistics/', views.get_job_statistics, name='get_job_statistics'),
   path('download/<path:path>/', views.download, name='download'),
-  path('delete_file/<path:file>/', views.delete_file, name="delete_file")
+  path('delete_file/<path:file>/', views.delete_file, name="delete_file"),
+  path('cancel_job/<str:job_id>/', views.cancel_job, name="cancel_job")
 ]

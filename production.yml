@@ -18,7 +18,7 @@ services:
   celery:
     restart: always
     build: ./web
-    command: bash -c "cd aip && celery -A aip_project worker -l info"
+    command: bash -c "cd aip && celery -A aip_project worker -l info --statedb=/files/working.state"
     env_file: .env
     volumes:
       - ../aip-files:/files

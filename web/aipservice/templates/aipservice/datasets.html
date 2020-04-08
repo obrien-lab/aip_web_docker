@@ -24,6 +24,7 @@
       <th>File</th>
       <th>Size</th>
       <th>Uploaded</th>
+      <th>Delete</th>
     </thead>
     <tbody>
       {% for file in my_files %}
@@ -31,6 +32,7 @@
           <td>{{ file.name }}</td>
           <td>{{ file.size|filesizeformat}}</td>
           <td class="datetime">{{ file.datetime|date:'Y-m-d H:i T' }}</td>
+          <td><a href="{% url 'delete_file' file.name%}" onclick="return confirm('Are you sure you want to delete the file?')"><span class="glyphicon glyphicon-trash"></span></a></td>
         </tr>
       {% endfor %}
     </tbody>

@@ -4,6 +4,7 @@ import datetime
 from django.conf import settings
 from django.core.mail import send_mail
 from celery import shared_task
+from billiard.exceptions import Terminated
 from .models import *
 from .aip import *
 
@@ -18,7 +19,7 @@ def send_notification_mail(job, domain, job_type):
         recipient_list = [job.email,]
         send_mail( subject, message, email_from, recipient_list )
     
-@shared_task(soft_time_limit=18000, time_limit=18060)
+@shared_task(soft_time_limit=18000, time_limit=18060, throws=(Terminated,))
 def offset_task(domain,
             job_id,
             species,
@@ -36,20 +37,22 @@ def offset_task(domain,
             include = True,
             alignment_type = "genome",
             get_profile = False
-            ):  
-    job = AsiteOffsetsJob.objects.get(id = job_id)
-    job.status = "RUNNING"
-    job.task_id = offset_task.request.id
-    job.finish_date = datetime.datetime.now()
-    job.save()
-
-    # create the working folder
-    folder = os.path.join(settings.MEDIA_ROOT, "Offset_%d" % job_id)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-
-    status = "SUCCESS"
+            ):      
     try:
+        job = AsiteOffsetsJob.objects.get(id = job_id)
+        
+        if job.status == "CANCELED":
+            return
+        
+        job.status = "RUNNING"
+        job.task_id = offset_task.request.id
+        job.save()
+
+        # create the working folder
+        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
         run_offset(folder, 
                 species,
                 bam_file, 
@@ -66,6 +69,7 @@ def offset_task(domain,
                 include,
                 alignment_type,
                 get_profile)
+        status = "SUCCESS"
     except Exception as e:
         logger.error("Error getting Asite-IP offset: %s", str(e))
         status = "ERROR"
@@ -73,10 +77,11 @@ def offset_task(domain,
     # update the job status
     job = AsiteOffsetsJob.objects.get(id = job_id)
     job.status = status
+    job.finish_date = datetime.datetime.now()
     job.save()
     send_notification_mail(job, domain, "offset")
 
-@shared_task(soft_time_limit=18000, time_limit=18060)
+@shared_task(soft_time_limit=18000, time_limit=18060, throws=(Terminated,))
 def profile_task(domain,
             job_id,
             species,
@@ -89,20 +94,22 @@ def profile_task(domain,
             three_prime = False, 
             overlap = 0, 
             alignment_type = "genome",
-            ):  
-    job = AsiteProfilesJob.objects.get(id = job_id)
-    job.status = "RUNNING"
-    job.task_id = profile_task.request.id
-    job.finish_date = datetime.datetime.now()
-    job.save()
-
-    # create the working folder
-    folder = os.path.join(settings.MEDIA_ROOT, "Profile_%d" % job_id)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-
-    status = "SUCCESS"
+            ):    
     try:
+        job = AsiteProfilesJob.objects.get(id = job_id)
+        
+        if job.status == "CANCELED":
+            return
+    
+        job.status = "RUNNING"
+        job.task_id = profile_task.request.id
+        job.save()
+
+        # create the working folder
+        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
         run_profile(folder, 
                 species,
                 bam_file, 
@@ -114,6 +121,7 @@ def profile_task(domain,
                 three_prime, 
                 overlap, 
                 alignment_type)
+        status = "SUCCESS"
     except Exception as e:
         logger.error("Error getting A-site profiles: %s", str(e))
         status = "ERROR"
@@ -121,5 +129,6 @@ def profile_task(domain,
     # update the job status
     job = AsiteProfilesJob.objects.get(id = job_id)
     job.status = status
+    job.finish_date = datetime.datetime.now()
     job.save()
     send_notification_mail(job, domain, "profile")

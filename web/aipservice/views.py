@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from datetime import datetime
 from celery import uuid
 from celery import current_app
@@ -169,7 +170,7 @@ class OffsetReportView(View):
         elif not (request.user.is_superuser or job.user == request.user):
             raise PermissionDenied
             
-        folder = os.path.join(settings.MEDIA_ROOT, "Offset_%s" % job_id)
+        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
         log_path = os.path.join(folder, "aip.log")
         if not os.path.exists(log_path):
             log_path = None
@@ -198,7 +199,7 @@ class ProfileReportView(View):
         elif not (request.user.is_superuser or job.user == request.user):
             raise PermissionDenied
             
-        folder = os.path.join(settings.MEDIA_ROOT, "Profile_%s" % job_id)
+        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
         
         log_path = os.path.join(folder, "aip.log")
         if not os.path.exists(log_path):
@@ -215,10 +216,10 @@ class JobListView(View):
             return redirect('account_login')
         
         jobs = [{"title": "A-site Offset Jobs", 
-                 "job_list": AsiteOffsetsJob.objects.filter(user=request.user),
+                 "job_list": AsiteOffsetsJob.objects.filter(user=request.user).order_by('-id'),
                  "link": "offset_report"},
                 {"title": "A-site Profile Jobs",
-                 "job_list": AsiteProfilesJob.objects.filter(user=request.user),
+                 "job_list": AsiteProfilesJob.objects.filter(user=request.user).order_by('-id'),
                  "link": "profile_report"}]
         return render(request, 'aipservice/job_list.html', {"jobs": jobs})
 
@@ -241,7 +242,7 @@ def get_job_statistics(request):
                         })
 
 def get_offset_results(request, job_id):
-    folder  = os.path.join(settings.MEDIA_ROOT, "Offset_%s" % job_id)
+    folder = os.path.join(settings.MEDIA_ROOT, "output", job_id)
     filepath = os.path.join(folder, "A-site_offsets.tab")
     block = ""
     
@@ -346,4 +347,26 @@ def delete_file(request, file):
     if os.path.exists(path):
         os.remove(path)
         return redirect('datasets')
+    
+def cancel_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+    elif not (request.user.is_superuser or job.user == request.user):
+        raise PermissionDenied
+        
+    try:
+        current_app.control.revoke(job.task_id, terminate=True)
+    except:
+        pass
+
+    # clean up the space
+    scratch = os.path.join(settings.MEDIA_ROOT, "output", str(job_id), "scratch")
+    if os.path.exists(scratch):
+         shutil.rmtree(scratch)
+
+    job.status = "CANCELED"
+    job.save()
+    return redirect('job_list')
     

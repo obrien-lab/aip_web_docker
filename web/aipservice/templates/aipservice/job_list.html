@@ -14,7 +14,7 @@
         <tr>
           <td><a href="{% url dict.link job.id %}">{{job.name}}</a> </td>
           <td class="datetime">{{job.create_date|date:'Y-m-d H:i T'}}</td>
-          <td>{{job.status}}</td>
+          <td>{{job.status}} {% if job.status == "PENDING" or job.status == "RUNNING" %}<a href="{% url 'cancel_job' job.id %}" onclick="return confirm('Are you sure you want to cancel the job?')" class="btn btn-default">Cancel</a>{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -25,6 +25,9 @@
 {% block javascript %}
 <script>
   $("#nav-job").addClass("active");
-  $('table').DataTable();
+  $('table').DataTable({
+      "pageLength": 25,
+      "ordering": false
+  });
 </script>
 {% endblock %}
