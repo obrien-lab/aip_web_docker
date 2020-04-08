@@ -34,7 +34,8 @@ MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE = "Multiple_mapped_gene_read_counts.tab"
 def processBamFile(folder,
                    bam_file):
     try:
-        with open(os.path.join(folder, 'samfile.sam'), "w") as file:
+        sam_file = os.path.join(folder, 'samfile.sam')
+        with open(sam_file, "w") as file:
             subprocess.run(["samtools", "view", bam_file], stdout=file, shell=False)        
     except Exception:
         message = 'Samtools failed. Check the input bam file.'
