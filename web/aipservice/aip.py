@@ -796,7 +796,7 @@ def get_transcript_sequences(annotation_file, genome, folder, extra_overlap=0):
         count_file.close()
 
 
-def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder):
+def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_prime):
     # Current support only for quantified read counts from 5' end. Offset from 3' end can be implemented.
 
     dict_len = {}
@@ -854,13 +854,20 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder):
                     logger.warn = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
                     offset = 0
 
-                if offset != 0:
-                    # Only those pos before 0 matter when offseted map to a position in CDS
-                    if pos < 0 <= pos+offset < len(asite):
-                        asite[pos+offset] += read_count_dict[fsize][gene][pos]
-                    elif pos > 0 and pos+offset-1 < len(asite):
-                        # -1 because the Asite profile is a list with index 0
-                        asite[pos+offset-1] += read_count_dict[fsize][gene][pos]
+                if three_prime:
+                    if offset != 0:
+                        # Only those pos after length of CDS matter when offseted map to a position in CDS
+                        if 0 < pos - offset - 1 < len(asite):
+                            # -1 because the Asite profile is a list with index 0
+                            asite[pos - offset - 1] += read_count_dict[fsize][gene][pos]
+                else:
+                    if offset != 0:
+                        # Only those pos before 0 matter when offseted map to a position in CDS
+                        if pos < 0 <= pos+offset < len(asite):
+                            asite[pos+offset] += read_count_dict[fsize][gene][pos]
+                        elif pos > 0 and pos+offset-1 < len(asite):
+                            # -1 because the Asite profile is a list with index 0
+                            asite[pos+offset-1] += read_count_dict[fsize][gene][pos]
             # This dictionary will store for every gene the A-site profiles for each fragment size
             asite_dict[gene][fsize] = asite
 
@@ -1780,7 +1787,7 @@ def run_offset(folder,
 
         if get_profile:
             offset_dict = {fsize: {frame: offset_dict[fsize][frame]["off"] for frame in offset_dict[fsize]} for fsize in offset_dict}
-            generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
+            generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime)
         
         # remove the scratch folder
         shutil.rmtree(scratch)
@@ -1832,7 +1839,7 @@ def run_profile(folder,
             create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
         offset_dict = get_offset_dict_from_file(offset_file)
-        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder)
+        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime)
         
         # remove the scratch folder
         shutil.rmtree(scratch)
