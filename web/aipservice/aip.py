@@ -819,9 +819,7 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
                         try:
                             read_count_dict[fsize][gene][i+1] = reads_list[i - start_index]
                         except IndexError:
-                            message = 'IndexError when generating read count dictionary in generating A-site profiles. Fragment size: %d, length of read list: %d, start index: %d, gene length: %d.' % (fsize, len(reads_list), start_index, length)
-                            logger.error(message)
-                            raise Exception(message)
+                            pass
                     else:
                         read_count_dict[fsize][gene][i] = reads_list[i - start_index]
     logger.info('Parsed the CDS read counts.')
