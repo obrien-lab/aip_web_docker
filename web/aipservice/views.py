@@ -316,18 +316,23 @@ def get_offset_results(request, job_id):
     for frame in range(FRAMES):
         offset_pct[frame] = []
     with open(filepath, 'r') as file:
-        for idx, line in enumerate(file):
-            fields = line.strip().split('\t')
-            frag = fields[0]
-            length = int((len(fields) - 1) / FRAMES)
-            offsets = list(range(0, length * FRAMES + 1, FRAMES))
+        for line in file:
+            if line[0] == "P" or line[0] == "F":
+                continue
+            blocks = line.strip().split('\t\t')
             for frame in range(FRAMES):
+                fields = blocks[frame].split('\t')
+                
+                if frame == 0:
+                    frag = fields[0]
+                    fields = fields[1:]
+                
+                offsets = [x * 3 for x in range(len(fields))]
                 offset_pct[frame].append({"x": offsets,
-                                          "y": fields[1 + length * frame : 1 + length * frame + length],
+                                          "y": fields,
                                           "type": 'bar',
                                           "name": frag
-                                         }) 
-                
+                                         })   
     return JsonResponse({'offsets': probable_offsets,
                          'frag_size_hist': frag_size_hist,
                          'offset_pct': offset_pct,
