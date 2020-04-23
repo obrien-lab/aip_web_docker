@@ -33,6 +33,12 @@ MULTIPLE_MAPPED_GENE_READ_COUNTS_FILE = "Multiple_mapped_gene_read_counts.tab"
 
 def processBamFile(folder,
                    bam_file):
+    
+    file_name, ext = os.path.splitext(bam_file)
+    if ext == ".sam":
+        # input file is already a sam file
+        return bam_file
+        
     try:
         sam_file = os.path.join(folder, 'samfile.sam')
         with open(sam_file, "w") as file:
