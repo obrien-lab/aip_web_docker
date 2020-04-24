@@ -36,7 +36,7 @@
     <span class="error">{{form.alignment_type.errors}}</span>
   </div>
   <div class="form-group">
-    <label>BAM file</label>
+    <label>BAM or SAM file</label>
     <select name="bam_file">
       {% file_list user %}
     </select>
@@ -117,12 +117,14 @@
     <select name="fasta_file">
       {% file_list user %}
     </select>
-    <span class="error">{{form.fasta_file.errors}}</span>  
+    <span class="error">{{form.fasta_file.errors}}</span>
+    <p class="form-text text-muted" id="fasta-genome">Select the fasta file containing the genome sequence.</p>
+    <p class="form-text text-muted" id="fasta-trans" style="display: none">Select the fasta file containing the transcriptome sequence.</p>
   </div>
   <div class="form-group">
-    <label>Fragment length: </label>
-    min<input type="number" name = "min_frag" value="20">nt, 
-    max<input type="number" name="max_frag" value="35">nt
+    <label>Fragment size<a href="{% url 'glossary'%}#fragment-size"><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> </label>
+    min <input type="number" name="min_frag" value="20" style="width:4em"> nt, 
+    max <input type="number" name="max_frag" value="35" style="width:4em"> nt
     <span class="error">{{form.min_frag.errors}}</span>  
     <span class="error">{{form.max_frag.errors}}</span>  
   </div>
@@ -133,33 +135,33 @@
   </div>
   <div class="form-group">
     <label class="control-label">Overlap</label>
-    <input type="number" name="overlap" value="0" .col-lg-1> nt
+    <input type="number" name="overlap" value="0" style="width:4em"> nt
     <span class="error">{{form.overlap.errors}}</span>  
     <p class="form-text text-muted"> Number of nucleotides beyond the CDS region of a gene which are to be avoided to overlap with another gene. </p>
   </div>
   <div class="form-group">
     <label>Thresholds </label>
-    <p>Minimum average number of reads per codon for filtering genes <input type="number" name="threshold_avg_reads"  value="1"></p>
+    <p>Minimum average number of reads per codon for filtering genes <input type="number" name="threshold_avg_reads" value="1" style="width:4em"></p>
     <span class="error">{{form.threshold_avg_reads.errors}}</span>  
-    <p>Minimum percentage of genes with the most probable offset for assigning a unique offset <input type="number" name="threshold_gene_pct" value="70">% </p>
+    <p>Minimum percentage of genes with the most probable offset for assigning a unique offset <input type="number" name="threshold_gene_pct" value="70" style="width:4em">% </p>
     <span class="error">{{form.threshold_gene_pct.errors}}</span>  
-    <p>Minimum ratio between the average reads in the second, third and fourth codon and the reads in the first codon <input type="number" name="threshold_start_codon" value="5"></p>
+    <p>Minimum ratio between the average reads in the second, third and fourth codon and the reads in the first codon <input type="number" name="threshold_start_codon" value="5" style="width:4em"></p>
     <span class="error">{{form.threshold_start_codon.errors}}</span>  
   </div>
-  <div class="form-group">
+  <div class="form-group" id="filter-file">
     <label>Filter file (optional)</label>
     <select name="filter_file">
-       <option value="" disabled selected>-- Select --</option>
+       <option value="" selected>-- None --</option>
       {% file_list user %}
     </select>
     <span class="error">{{form.filter_file.errors}}</span>  
-    <p class="form-text text-muted">The filter file consists of a list of genes deliminated by tab.</p>
-    <div class="form-check">
+    <p class="form-text text-muted">The filter file consists of a list of genes to be included or excluded in the analysis. In the file, the genes should be deliminated by tab.</p>
+    <div class="form-check" style="display:none">
       <input type="radio" name="include" value="true" checked> 
       <label>Include</label> 
       <span class="form-text text-muted">Only the genes in the filter file will be inlcuded.</span>
     </div>
-    <div class="form-check">
+    <div class="form-check" style="display:none">
       <input type="radio" name="include" value="false"> 
       <label>Exclude</label> 
       <span class="form-text text-muted">Genes in the filter file will be excluded.</span>
@@ -185,13 +187,18 @@
 {% block javascript %}
 <script>
   $("#nav-offset").addClass("active");
+  $('[data-toggle="popover"]').popover(); 
   $('input[type=radio][name=alignment_type]').change(function(){
       if (this.value == "genome") {
           $('#genome-annotation').show();
           $('#trans-annotation').hide();
+          $('#fasta-genome').show();
+          $('#fasta-trans').hide();
       } else {
           $('#genome-annotation').hide();
           $('#trans-annotation').show();
+          $('#fasta-genome').hide();
+          $('#fasta-trans').show();
       }
   });
 
@@ -200,6 +207,14 @@
           $('#offset-file').show();
       } else {
           $('#offset-file').hide();
+      }
+  })
+    
+  $('#filter-file select').change(function(){
+      if (this.value == "") {
+           $("#filter-file div").hide();      
+      } else {
+           $("#filter-file div").show();
       }
   })
 </script>

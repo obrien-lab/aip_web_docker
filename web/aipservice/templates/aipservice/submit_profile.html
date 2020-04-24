@@ -36,7 +36,7 @@
     <span class="error">{{form.alignment_type.errors}}</span>  
   </div>
   <div class="form-group">
-    <label>BAM file</label>
+    <label>BAM or SAM file</label>
     <select name="bam_file">
       {% file_list user %}
     </select>
@@ -118,11 +118,13 @@
       {% file_list user %}
     </select>
     <span class="error">{{form.fasta_file.errors}}</span>  
+    <p class="form-text text-muted" id="fasta-genome">Select the fasta file containing the genome sequence.</p>
+    <p class="form-text text-muted" id="fasta-trans" style="display: none">Select the fasta file containing the transcriptome sequence.</p>
   </div>
   <div class="form-group">
-    <label>Fragment length: </label>
-    min<input type="number" name = "min_frag" value="20">nt, 
-    max<input type="number" name="max_frag" value="35">nt
+    <label>Fragment size<a href="{% url 'glossary'%}#fragment-size"><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> </label>
+    min <input type="number" name = "min_frag" value="20" style="width:4em"> nt, 
+    max <input type="number" name="max_frag" value="35" style="width:4em"> nt
     <span class="error">{{form.min_frag.errors}}</span>  
     <span class="error">{{form.max_frag.errors}}</span>  
   </div>
@@ -133,7 +135,7 @@
   </div>
   <div class="form-group">
     <label class="control-label">Overlap</label>
-    <input type="number" name="overlap" value="0" .col-lg-1> nt
+    <input type="number" name="overlap" value="0" style="width:4em"> nt
     <span class="error">{{form.overlap.errors}}</span>  
     <p class="form-text text-muted"> Number of nucleotides beyond the CDS region of a gene which are to be avoided to overlap with another gene. </p>
   </div>
@@ -144,7 +146,7 @@
         {% file_list user %}
       </select>
       <span class="error">{{form.offset_file.errors}}</span>  
-      <span class="form-text text-muted">The offset file should contain offsets in rows of different fragment sizes and columns in frame 0,1 and 2. The first column should be fragment size. </span>
+      <p class="form-text text-muted">The offset file should contain offsets in rows of different fragment sizes and columns in frame 0,1 and 2. The first column should be fragment size. </p>
     </div>
   </div>
   <div class="form-group">
@@ -165,9 +167,13 @@
       if (this.value == "genome") {
           $('#genome-annotation').show();
           $('#trans-annotation').hide();
+          $('#fasta-genome').show();
+          $('#fasta-trans').hide();
       } else {
           $('#genome-annotation').hide();
           $('#trans-annotation').show();
+          $('#fasta-genome').hide();
+          $('#fasta-trans').show();
       }
   });
 

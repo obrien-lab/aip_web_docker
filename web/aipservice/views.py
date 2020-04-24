@@ -29,6 +29,10 @@ class HomeView(View):
     def get(self, request):
         return render(request, 'aipservice/home.html', {'max_file_size': settings.MAX_FILE_SIZE, 'max_store_days': settings.MAX_STORE_DAYS})
     
+class GlossaryView(View):
+    def get(self, request):
+        return render(request, 'aipservice/glossary.html')
+    
 class UserProfileView(View):
     def get(self, request):
         return render(request, 'aipservice/user_profile.html')    
