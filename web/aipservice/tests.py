@@ -2,10 +2,10 @@ from aip import *
 # Create your tests here.
 
 folder = "../../../scratch"
-bam_file = "../../../aip-files/sacCer3_Pop.bam"
-annotation_file = "../../../aip-files/sacCer3_CDS.tab" 
-fasta_file = "../../../aip-files/sacCer3_R64-2-1_genome.fa"
-offset_file = ""
+bam_file = "../../../aip-files/input/default/Simulated_profiles_23_27_frames_0_1_offset_15.sam"
+annotation_file = "../../../aip-files/input/default/Selected_50_genes_23_27_frames_0_1_offset_15.tab" 
+fasta_file = "../../../aip-files/input/default/sacCer3_R64-2-1_genome.fa"
+offset_file = "../../../aip-files/input/default/A-site_IP_offset_table_yeast.tab"
 min_frag = 20 
 max_frag = 35 
 three_prime = False 
@@ -16,7 +16,8 @@ threshold_start_codon = 5
 filter_file = ""
 include = True
 alignment_type = "genome"
-get_profile = False
+get_profile = True
+species = "yeast"
 
 # cdsparser(annotation_file, fasta_file) 
 
