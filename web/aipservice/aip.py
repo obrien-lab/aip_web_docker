@@ -441,23 +441,23 @@ def create_cds_counts_genome(annotation_file, genome, folder, sam_parsed_count_d
                     except KeyError:
                         multi_mapped = 0
                     # Get the read counts on the positive strand
-                    strand_counts = countstrand(counts_list, '+')
+                    strand_counts = counts_list[0::2]
                     if multi_mapped > 0:
                         # If there are multiple mapped reads at this position, get the read counts for those multiple mapped reads
-                        mul_strand_counts = countstrand(mul_count_list, '+')
+                        mul_strand_counts = mul_count_list[0::2]
                     # For positive strand, the current position in "for" loop is from gene start side
                     current_pos = gene_position_start
 
-                if strand == '-':
+                elif strand == '-':
                     try:
                         multi_mapped = sam_parsed_count_dict[chr_num][pos][-1]
                     except KeyError:
                         multi_mapped = 0
 
                     # Get the read counts on the negative strand
-                    strand_counts = countstrand(counts_list, '-')
+                    strand_counts = counts_list[1::2]
                     if multi_mapped > 0:
-                        mul_strand_counts = countstrand(mul_count_list, '-')
+                        mul_strand_counts = mul_count_list[1::2]
                     current_pos = gene_position_end
 
                 # We will create dictionaries with fragment length as keys and dict of gene with list of read counts at every position as our values
@@ -520,23 +520,6 @@ def create_cds_counts_genome(annotation_file, genome, folder, sam_parsed_count_d
                 reads_list = reversed(reads_list)
             count_file.write(gene + '\t-50\t' + str(length) + '\t' + ','.join(map(str, reads_list)) + '\n')
         count_file.close()
-
-
-# Count the reads on 5' end with same strand
-def countstrand(counts_list, strand):
-    frag_range = int(len(counts_list) / 2)
-    strand_counts = []
-    # initialize the strand count list
-    for q in range(0, frag_range):
-        strand_counts.append(0)
-
-    # Start filling the strand count list with actual values from the count_list
-    for r in range(0, frag_range):
-        if strand == '+':
-            strand_counts[r] = counts_list[r * 2]
-        if strand == '-':
-            strand_counts[r] = counts_list[r * 2 + 1]
-    return strand_counts
 
 
 # Parse the genome reference file
