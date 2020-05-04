@@ -53,16 +53,21 @@ def processBamFile(folder,
 def processAnnotationFile(folder, species,
                          annotation_file):
     file_name, ext = os.path.splitext(annotation_file)
+    
     if ext == '.gff' or ext == '.gff3':
+        outfile = os.path.join(folder, "cds_info.tab")
         if species == 'yeast':
-            annotation_file = process_gff_sacCer3(annotation_file)
+            process_gff_sacCer3(annotation_file, outfile)
         elif species == 'ecoli':
-            annotation_file = process_gff_ecoli(annotation_file)
+            process_gff_ecoli(annotation_file, outfile)
         else:
             message = 'GFF file is only accepted for sacCer3 and E.coli.'
             logger.error(message)
             raise Exception(message)
-    return annotation_file
+    else:
+        outfile = annotation_file
+        
+    return outfile
 
 
 def samparser_genome(sfile, frag_min, frag_max, three_prime):
@@ -517,15 +522,6 @@ def create_cds_counts_genome(annotation_file, genome, folder, sam_parsed_count_d
         count_file.close()
 
 
-# Calculate total length of multiCDS region
-def multicdslen(cds_positions):
-    length_total = 0
-    for each_pos in cds_positions:
-        each_len = each_pos[1] - each_pos[0] + 1
-        length_total += each_len
-    return length_total
-
-
 # Count the reads on 5' end with same strand
 def countstrand(counts_list, strand):
     frag_range = int(len(counts_list) / 2)
@@ -560,12 +556,11 @@ def read_fasta(genome_file):
 
 # Parse the GFF file to get the positions and no. of CDS regions in a gene.
 # Important data structures: dictcdscount and dictcdsinfo
-def process_gff_sacCer3(gff):
+def process_gff_sacCer3(gff, outfile):
     dictgene = {}  # Contains gene names as keys and their start and end positions as a list of values
     dictcdscount = {}  # Contains gene names as keys and no. of cds regions(exons) for that particular gene
     dictcdsinfo = {}  # Contains the start and end positions of the cds regions as list of lists
-    dict_len = {}
-
+    
     with open(gff) as gff_file:
         for line in gff_file:
             line_list = line.strip().split('\t')
@@ -586,34 +581,31 @@ def process_gff_sacCer3(gff):
                         dictcdscount[cds_name] += 1
                     dictgene[cds_name] = [chrnum, strand]
                     dictcdsinfo[cds_name].append([left_pos, right_pos])
-    # intron_genes_file = open("list_genes_introns.tab", 'w')
-    cds_file = open("cds_info.tab", "w")
-
-    for gene in dictcdsinfo:
-        chrnum, strand = dictgene[gene]
-        dict_len[gene] = multicdslen(dictcdsinfo[gene])
-        #  Gene name  Chr number Strand  Length of gene (CDS regions only) No of CDS regions
-        cds_file.write(gene + '\t' + chrnum + '\t' + strand + '\t' + str(dict_len[gene]) + '\t' + str(dictcdscount[gene]))
-        # Start and end of each CDS region
-        for cds in dictcdsinfo[gene]:
-            cds_file.write('\t' + str(cds[0]) + '\t' + str(cds[1]))
-        cds_file.write('\n')
-
-    # for gene in dictcdscount:
-    #     if dictcdscount[gene] > 1:
-    #         intron_genes_file.write(gene + '\n')
-    gff_file.close()
-    cds_file.close()
-    return cds_file.name
+             
+    dict_len = {}
+    for gene, cds_positions in dictcdsinfo.items():
+        length_total = 0
+        for each_pos in cds_positions:
+            length_total += each_pos[1] - each_pos[0] + 1
+        dict_len[gene] = length_total
+    
+    with open(outfile, "w") as cds_file:
+        for gene in dictcdsinfo:
+            chrnum, strand = dictgene[gene]
+            #  Gene name  Chr number Strand  Length of gene (CDS regions only) No of CDS regions
+            cds_file.write(gene + '\t' + chrnum + '\t' + strand + '\t' + str(dict_len[gene]) + '\t' + str(dictcdscount[gene]))
+            # Start and end of each CDS region
+            for cds in dictcdsinfo[gene]:
+                cds_file.write('\t' + str(cds[0]) + '\t' + str(cds[1]))
+            cds_file.write('\n')
 
 
-def process_gff_ecoli(gff):
+def process_gff_ecoli(gff, outfile):
     dictgene = {}  # Contains gene names as keys and their start and end positions as a list of values
     dictcdsinfo = {}  # Contains the start and end positions of the cds regions as list of lists
     dict_psuedo = {}
     dict_len = {}
-    problem_genes = []
-    chrom = ''
+
     with open(gff) as gff_file:
         for line in gff_file:
             line_list = line.strip().split('\t')
@@ -652,31 +644,28 @@ def process_gff_ecoli(gff):
                         if gene_alias in dictgene:
                             cds_name = dictgene[gene_alias][2]['locus_tag']
 
-                        if gene_alias in dictgene:
                             if left_pos != dictgene[gene_alias][0]:
                                 logger.info('CDS for gene %s does not start at gene start. The cds start is at %d and gene start is at %d.' % (cds_name, left_pos, dictgene[gene_alias][0]))
+                                continue
+                                
+                            if right_pos != dictgene[gene_alias][1]:
                                 logger.info('CDS for gene %s does not stop at gene stop. The cds stop is at %d and gene stop is at %d.' % (cds_name, right_pos, dictgene[gene_alias][1]))
-                                problem_genes.append(cds_name)
-                        else:
-                            logger.info('Gene %s only has CDS annotation.' % cds_name)
-                        if cds_name not in dictcdsinfo:
+                                continue
+                            
+                            if cds_name in dictcdsinfo:
+                                logger.info('Second CDS present for gene %s.' % cds_name)
+                            
                             dictcdsinfo[cds_name] = [left_pos, right_pos, strand]
+                            dict_len[cds_name] = right_pos - left_pos + 1
                         else:
-                            logger.info('Second CDS present for gene %s.' % cds_name)
-                            dictcdsinfo[cds_name] = [left_pos, right_pos, strand]
-                        gene_length = right_pos - left_pos + 1
-                        dict_len[cds_name] = gene_length
+                            logger.info('Gene %s only has CDS annotation.' % gene_alias)
+                       
                 except IndexError:
                     logger.warn('Something might be wrong in the GFF file. Line: %s.' % line)
-    outfile = open("../data_files/ecoli/CDS_info.tab", 'w')
-    for gene in problem_genes:
-        del dictcdsinfo[gene]
-    for gene in dictcdsinfo:
-        left_pos, right_pos, strand = dictcdsinfo[gene]
-        outfile.write(gene + '\t' + str(chrom) + '\t' + str(strand) + '\t' + str(dict_len[gene]) + '\t1\t' + str(left_pos) + '\t' + str(right_pos) + '\n')
-
-    return outfile
-
+    with open(outfile, 'w') as cds_file:
+        for gene in dictcdsinfo:
+            left_pos, right_pos, strand = dictcdsinfo[gene]
+            cds_file.write(gene + '\t' + str(chrom) + '\t' + str(strand) + '\t' + str(dict_len[gene]) + '\t1\t' + str(left_pos) + '\t' + str(right_pos) + '\n')
 
 def cdsparser(annot_file, genome, extra_overlap=0):
     dict_cds_count = {}
