@@ -149,7 +149,7 @@ def samparser_genome(sfile, frag_min, frag_max, three_prime):
                                 dict_count[chr_no][position][-2] += 1
                                 dict_mul_count[chr_no][position][pos_in_value] += 1
                                 mul_read_count += 1
-                        if sam_flag == 16:  # Primary alignment on reverse strand
+                        elif sam_flag == 16:  # Primary alignment on reverse strand
                             if not multi_align:
                                 dict_count[chr_no][position][pos_in_value + 1] += 1
                                 dict_total[chr_no] += 1
@@ -160,12 +160,12 @@ def samparser_genome(sfile, frag_min, frag_max, three_prime):
                                 dict_mul_count[chr_no][position][pos_in_value + 1] += 1
                                 mul_read_count += 1
                         # Not primary alignment. It will counted under multiple aligned reads
-                        if sam_flag == 256:
+                        elif sam_flag == 256:
                             position = int(fields[3])
                             dict_count[chr_no][position][-2] += 1
                             dict_mul_count[chr_no][position][pos_in_value] += 1
 
-                        if sam_flag == 272:  # Not primary alignment and on reverse strand
+                        elif sam_flag == 272:  # Not primary alignment and on reverse strand
                             position = int(fields[3]) + read_length - 1
                             dict_count[chr_no][position][-1] += 1
                             dict_mul_count[chr_no][position][pos_in_value + 1] += 1
@@ -854,19 +854,14 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
                 mul_map_dict[fsize][gene_name] = {0: read_counts[idx], 1: read_counts[idx + 1], 2: read_counts[idx + 2]}
                 idx += 3
 
-        mulfile = open(os.path.join(folder, 'Genes_multiple_mapped_reads_agg.tab'), 'w')
         # List of all genes which have > 1% mul mapped reads and hence will not be considered
         mul_map_genes = []
         for gene in mul_map_gene_reads:
-            if mul_map_gene_reads[gene] > 0:
-                if gene not in total_reads:
-                    # the gene is not in total reads. It must be overlapping gene. skip.
-                    continue
-                else:
-                    perc_mul_map = float(mul_map_gene_reads[gene]) * 100 / float(mul_map_gene_reads[gene] + total_reads[gene])
-                    mulfile.write(gene + '\t' + str(perc_mul_map) + '%\t' + str(mul_map_gene_reads[gene]) + '\t' + str(total_reads[gene]) + '\n')
-                    if perc_mul_map > 1:
-                        mul_map_genes.append(gene)
+            if mul_map_gene_reads[gene] > 0 and gene in total_reads:
+                # If the gene is not in total reads, it must be overlapping gene. Skip.
+                perc_mul_map = float(mul_map_gene_reads[gene]) * 100 / float(mul_map_gene_reads[gene] + total_reads[gene])
+                if perc_mul_map > 1:
+                    mul_map_genes.append(gene)
     logger.info('Parsed the multiple mapped read counts.')
     dict_gene = {}
     good_genes = {}
@@ -960,17 +955,6 @@ def select_high_cov_genes(folder, frag_min, frag_max, threshold, three_prime, fi
                             good_genes[fsize][frame].append(gene_name)
                     else:
                         good_genes[fsize][frame].append(gene_name)
-
-    outfile = open(os.path.join(folder, 'Sorted_genes_by_Avg_reads_frag_size.tab'), 'w')
-    for name in dict_gene:
-        outfile.write(name)
-        for fsize in range(frag_min, frag_max + 1):
-            try:
-                for frame in range(3):
-                    outfile.write('\t' + str(dict_gene[name][fsize][frame][0]) + '\t' + str(dict_gene[name][fsize][frame][1]) + '\t' + str(dict_gene[name][fsize][frame][2]))
-            except KeyError:
-                continue
-        outfile.write('\n')
 
     filtered_cds_dict = {}
     for i in range(frag_min, frag_max + 1):
