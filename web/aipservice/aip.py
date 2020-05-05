@@ -130,35 +130,37 @@ def samparser_genome(sfile, frag_min, frag_max, three_prime):
                     dict_count[chr_no][position] = [0] * (frag_range * 2 + 2)
 
                 # If read is multiple mapped, then initialize the multiple count dict as well
-                if multi_align and chr_no not in dict_mul_count:
-                    dict_mul_count[chr_no] = {}
-                if multi_align and position not in dict_mul_count[chr_no]:
-                    dict_mul_count[chr_no][position] = [0] * (frag_range * 2 + 2)
+                if multi_align: 
+                    if chr_no not in dict_mul_count:
+                        dict_mul_count[chr_no] = {}
+                    if position not in dict_mul_count[chr_no]:
+                        dict_mul_count[chr_no][position] = [0] * (frag_range * 2 + 2)
 
                 pos_in_value = (read_length - frag_min) * 2
                 # Count the read according to its length and strand
                 if frag_min <= read_length <= frag_max:
                     try:
                         if sam_flag == 0:  # Primary alignment on forward strand
-                            if not multi_align:
-                                dict_count[chr_no][position][pos_in_value] += 1
-                                dict_total[chr_no] += 1
-                                read_count += 1
-                            else:
+                            if multi_align:
                                 # Multiple mapped reads are counted separately
                                 dict_count[chr_no][position][-2] += 1
                                 dict_mul_count[chr_no][position][pos_in_value] += 1
                                 mul_read_count += 1
-                        elif sam_flag == 16:  # Primary alignment on reverse strand
-                            if not multi_align:
-                                dict_count[chr_no][position][pos_in_value + 1] += 1
+                            else:    
+                                dict_count[chr_no][position][pos_in_value] += 1
                                 dict_total[chr_no] += 1
                                 read_count += 1
-                            else:
+                            
+                        elif sam_flag == 16:  # Primary alignment on reverse strand
+                            if multi_align:
                                 # Multiple mapped reads are counted separately. Last two columns are initialized for mul mapped reads for +ve and -ve strands respectively
                                 dict_count[chr_no][position][-1] += 1
                                 dict_mul_count[chr_no][position][pos_in_value + 1] += 1
                                 mul_read_count += 1
+                            else:
+                                dict_count[chr_no][position][pos_in_value + 1] += 1
+                                dict_total[chr_no] += 1
+                                read_count += 1
                         # Not primary alignment. It will counted under multiple aligned reads
                         elif sam_flag == 256:
                             position = int(fields[3])
@@ -235,15 +237,15 @@ def samparser_transcriptome(sfile, frag_min, frag_max, three_prime):
                 if frag_min <= read_length <= frag_max:
                     try:
                         if sam_flag == 0:  # Primary alignment on forward strand
-                            if not multi_align:
-                                dict_count[gene][position][pos_in_value] += 1
-                                read_count += 1
-                                total_count[gene] += 1
-                            else:
+                            if multi_align:
                                 # Multiple mapped reads are counted separately
                                 dict_count[gene][position][-1] += 1
                                 dict_mul_count[gene][position][pos_in_value] += 1
                                 mul_read_count += 1
+                            else:
+                                dict_count[gene][position][pos_in_value] += 1
+                                read_count += 1
+                                total_count[gene] += 1
                         # Not primary alignment. It will counted under multiple aligned reads
                         elif sam_flag == 256:
                             dict_count[gene][position][-1] += 1
@@ -743,9 +745,7 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
         for gene in read_count_dict[fsize]:
             if gene not in asite_dict:
                 asite_dict[gene] = {}
-            asite = []
-            for j in range(1, dict_len[gene]+1):
-                asite.append(0)
+            asite = [0] * dict_len[gene]
             for pos in sorted(read_count_dict[fsize][gene]):
                 # First step is to get the frame of the nucleotide position. Have to careful before the start position
                 if pos > 0:
@@ -783,15 +783,11 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
             asite_dict[gene][fsize] = asite
 
     # Output file for A-site profiles
-    asite_file = open(os.path.join(folder, 'A-site_profiles.tab'), 'w')
-    asite_table_dict = {}
-    for gene in asite_dict:
-        # This adds up the read count at every position from all fragment sizes for every gene
-        asite_profile = [sum(x) for x in zip(*asite_dict[gene].values())]
-        asite_table_dict[gene] = asite_profile
-        asite_file.write(gene + '\t' + str(dict_len[gene]) + '\t' + ','.join(map(str, asite_profile)) + '\n')
-
-    asite_file.close()
+    with open(os.path.join(folder, 'A-site_profiles.tab'), 'w') as asite_file:
+        for gene in asite_dict:
+            # This adds up the read count at every position from all fragment sizes for every gene
+            asite_profile = [sum(x) for x in zip(*asite_dict[gene].values())]
+            asite_file.write(gene + '\t' + str(dict_len[gene]) + '\t' + ','.join(map(str, asite_profile)) + '\n')
     
 
 # Using cutoffs for all possible frag sizes
