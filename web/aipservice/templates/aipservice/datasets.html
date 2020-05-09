@@ -9,32 +9,39 @@
 {% block content %}
 <div>
   <h3>Default files</h3>
+  {% for filetype, files in default_files.items %}
+  <h4>{{ filetype }}</h4>
   <ul>
-  {% for file in default_files %}
+  {% for file in files %}
       <li><i>{{ file }}</i></li>
   {% empty %}
       (None)
   {% endfor %}
   </ul>
+  {% endfor %}
   <h3>My files</h3>
+  {% if user.is_authenticated %} 
   <p>Notes: each file is stored for up to {{max_store_days}} days; max upload size is {{max_upload_size|filesizeformat}}. </p>
-
   <table class="table table-bordered">
     <thead>
+      <th>File Type</th>
       <th>File</th>
       <th>Size</th>
       <th>Uploaded</th>
       <th>Delete</th>
     </thead>
     <tbody>
-      {% for file in my_files %}
+    {% for filetype, files in my_files.items %}
+      {% for file in files %}
         <tr>
+          <td>{{filetype }} </td>
           <td>{{ file.name }}</td>
           <td>{{ file.size|filesizeformat}}</td>
           <td class="datetime">{{ file.datetime|date:'Y-m-d H:i T' }}</td>
-          <td><a href="{% url 'delete_file' file.name%}" onclick="return confirm('Are you sure you want to delete the file?')"><span class="glyphicon glyphicon-trash"></span></a></td>
+          <td><a href="{% url 'delete_file' file.name %}" onclick="return confirm('Are you sure you want to delete the file?')"><span class="glyphicon glyphicon-trash"></span></a></td>
         </tr>
       {% endfor %}
+    {% endfor %}
     </tbody>
   </table>
   <form method="post" enctype="multipart/form-data" class="form-inline">
@@ -45,6 +52,9 @@
       <button class="btn btn-primary" type="submit">Upload</button>
       <span class="error">{{form.file.errors}}</span>
   </form>
+  {% else %}
+    <p>Please <a href="{% url 'account_login' %}">log in</a> to upload your own files.</p>
+  {% endif %}
 </div>
 {% endblock %}
 

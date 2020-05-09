@@ -1654,7 +1654,7 @@ def run_offset(folder,
     # create the scratch folder    
     scratch = os.path.join(folder, "scratch")
     if not os.path.exists(scratch):
-        os.makedirs(scratch)
+        os.makedirs(scratch, exist_ok=True)
 
     try:
         sam_file = processBamFile(scratch, bam_file)
@@ -1713,7 +1713,7 @@ def run_profile(folder,
     # create the scratch folder    
     scratch = os.path.join(folder, "scratch")
     if not os.path.exists(scratch):
-        os.makedirs(scratch)
+        os.makedirs(scratch, exist_ok=True)
         
     try: 
         sam_file = processBamFile(scratch, bam_file)

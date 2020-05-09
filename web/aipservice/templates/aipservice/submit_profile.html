@@ -38,14 +38,14 @@
   <div class="form-group">
     <label>BAM or SAM file</label>
     <select name="bam_file">
-      {% file_list user %}
+      {% file_list user "BAM" %}
     </select>
     <span class="error">{{form.bam_file.errors}}</span>    
   </div>
   <div class="form-group">
     <label>Annotation file</label>
     <select name="annotation_file">
-      {% file_list user %}
+      {% file_list user "Other" %}
     </select>
     <span class="error">{{form.annotation_file.errors}}</span>
     <div class="form-text text-muted" id="genome-annotation">
@@ -115,18 +115,19 @@
   <div class="form-group">
     <label>FASTA file</label>
     <select name="fasta_file">
-      {% file_list user %}
+      {% file_list user "FASTA" %}
     </select>
     <span class="error">{{form.fasta_file.errors}}</span>  
     <p class="form-text text-muted" id="fasta-genome">Select the fasta file containing the genome sequence.</p>
     <p class="form-text text-muted" id="fasta-trans" style="display: none">Select the fasta file containing the transcriptome sequence.</p>
   </div>
   <div class="form-group">
-    <label>Fragment size<a href="{% url 'glossary'%}#fragment-size"><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> </label>
+    <label>Fragment size</label>
     min <input type="number" name = "min_frag" value="20" style="width:4em"> nt, 
     max <input type="number" name="max_frag" value="35" style="width:4em"> nt
     <span class="error">{{form.min_frag.errors}}</span>  
-    <span class="error">{{form.max_frag.errors}}</span>  
+    <span class="error">{{form.max_frag.errors}}</span>
+    <p class="form-text text-muted">The size of the read obtained in the Ribo-Seq Next-Generation Sequencing (NGS) experiment that represents a copy of the mRNA fragment protected by the ribosome and cleaved by the RNase enzyme.</p>
   </div>
   <div class="form-group">
     <label>Quantify reads from </label>
@@ -143,7 +144,7 @@
     <div id="offset-file">
       <label>Offset file</label>
       <select name="offset_file">
-        {% file_list user %}
+        {% file_list user "Other" %}
       </select>
       <span class="error">{{form.offset_file.errors}}</span>  
       <p class="form-text text-muted">The offset file should contain offsets in rows of different fragment sizes and columns in frame 0,1 and 2. The first column should be fragment size. </p>
@@ -151,6 +152,7 @@
   </div>
   <div class="form-group">
     <label>Email <input type="email" name="email" value="{{user.email}}"></label>
+    <p class="form-text text-muted">A notification will be sent to this email address once the job finishes.</p>
     <span class="error">{{form.email.errors}}</span>
     <p class="form-text text-muted"></p>
   </div>
@@ -163,6 +165,20 @@
 {% block javascript %}
 <script>
   $("#nav-profile").addClass("active");
+    
+  $('select[name=species]').change(function(){
+    if (this.value == "yeast") {
+      $('select[name=annotation_file]').val('/files/input/default/Other/sacCer3_CDS.tab');
+      $('select[name=fasta_file]').val('/files/input/default/FASTA/sacCer3_R64-2-1_genome.fa');
+    } else if (this.value == "ecoli") {
+      $('select[name=annotation_file]').val('/files/input/default/Other/ecoli_CDS.tab');
+      $('select[name=fasta_file]').val('/files/input/default/FASTA/ecoli_nc_000913.3.fa');
+    } else if (this.value == "mouse") {
+      $('select[name=annotation_file]').val('/files/input/default/Other/mm10_start_index.tab');
+      $('select[name=fasta_file]').val('/files/input/default/FASTA/mm10_transcript.fa');    
+    }
+  });
+    
   $('input[type=radio][name=alignment_type]').change(function(){
       if (this.value == "genome") {
           $('#genome-annotation').show();
@@ -184,5 +200,6 @@
           $('#offset-file').hide();
       }
   })
+  
 </script>
 {% endblock %}

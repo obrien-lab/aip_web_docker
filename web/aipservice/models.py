@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 
 class Job(models.Model):
     name = models.CharField(max_length=256)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    email = models.EmailField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    email = models.EmailField()
     create_date = models.DateTimeField(auto_now_add=True)
     finish_date = models.DateTimeField(null=True)
     task_id = models.CharField(max_length=256, null=True, blank=True)

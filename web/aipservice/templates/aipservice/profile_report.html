@@ -1,4 +1,5 @@
 {% extends 'report.html' %}
+{% load filename %}
 {% block report %}
 <div>
   <h4>Download</h4>
@@ -12,6 +13,10 @@
   <ul>
       <li>Species: {{species}}</li>
       <li>Alignment type: {{job.alignment_type}} </li>
+      <li>BAM or SAM file: {{job.bam_file|filename}} </li>
+      <li>Annotation file: {{job.annotation_file|filename}} </li>
+      <li>FASTA file: {{job.fasta_file|filename}} </li>
+      <li>Offset file: {{job.offset_file|filename}} </li>
       <li>Fragment size: min {{job.min_frag}} nt, max {{job.max_frag}} nt</li>
       <li>Quantify reads from: {% if job.three_prime %} 3 {% else %} 5 {% endif%}' end</li>
       <li>Overlap: {{job.overlap}} nt</li>

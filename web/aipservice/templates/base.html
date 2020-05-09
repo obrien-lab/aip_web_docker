@@ -58,8 +58,8 @@
 <body>
   <div class="jumbotron" id="header">
     <div class="container">
-      <h1>A-site Integer Programming</h1>      
-      <p>Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming.</p>
+      <h1>Ribo-Seq A-site Identifier</h1>      
+      <p>Identifying A-site locations on ribosome-protected mRNA fragments using Integer Programming.</p>
     </div>
   </div>
   <nav class="navbar">
@@ -77,7 +77,6 @@
         <li id="nav-offset"><a href="{% url 'submit_offset' %}">Get A-site Offsets</a></li>
         <li id="nav-profile"><a href="{% url 'submit_profile' %}">Get A-site Profiles</a></li>
         <li id="nav-job"><a href="{% url 'job_list' %}">My Jobs</a></li>
-        <li id="nav-glossary"><a href="{% url 'glossary' %}">Glossary</a></li>
         {% if user.is_superuser %}
           <li id="nav-login"><a href="{% url 'admin:index' %}">Admin</a></li>
         {% endif %}
@@ -102,6 +101,7 @@
   <div class="container">
     {% block content %}
     {% endblock %}
+    <br/>
   </div>
   <script>
     $(".datetime").text(function() {

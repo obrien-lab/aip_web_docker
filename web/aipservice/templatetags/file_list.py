@@ -4,8 +4,8 @@ from django.conf import settings
 
 register = template.Library()
 
-def list_files_in_folder(subfolder):
-    dest = os.path.join(settings.MEDIA_ROOT, 'input', subfolder)
+def list_files_in_folder(subfolder, filetype):
+    dest = os.path.join(settings.MEDIA_ROOT, 'input', subfolder, filetype)
     files = []
     if os.path.exists(dest):
         files = os.listdir(dest)
@@ -13,6 +13,8 @@ def list_files_in_folder(subfolder):
     return [{'filename': file, 'filepath': os.path.join(dest, file) } for file in files]
 
 @register.inclusion_tag('file_list.html')
-def file_list(user):    
-    return {'default_files': list_files_in_folder('default'), 
-            'my_files': list_files_in_folder(os.path.join('users', str(user.id)))}
+def file_list(user, filetype):
+    result = {'default_files': list_files_in_folder('default', filetype)}
+    if user:
+        result['my_files'] = list_files_in_folder(os.path.join('users', str(user.id)), filetype)
+    return result

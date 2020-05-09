@@ -14,7 +14,7 @@ def send_notification_mail(job, domain, job_type):
     # send notification email
     if settings.EMAIL_HOST_USER:
         subject = 'A-site IP job finished'
-        message = 'Your A-site IP job is finished. Please visit %s/%s_report/%d to view the results.' % (domain, job_type, job.id)
+        message = 'Your A-site IP job has finished. Please visit %s/%s_report/%s to view the results.' % (domain, job_type, job.task_id)
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [job.email,]
         send_mail( subject, message, email_from, recipient_list )
@@ -51,7 +51,7 @@ def offset_task(domain,
         # create the working folder
         folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
         if not os.path.exists(folder):
-            os.makedirs(folder)
+            os.makedirs(folder, exist_ok=True)
 
         run_offset(folder, 
                 species,
@@ -108,7 +108,7 @@ def profile_task(domain,
         # create the working folder
         folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
         if not os.path.exists(folder):
-            os.makedirs(folder)
+            os.makedirs(folder, exist_ok=True)
 
         run_profile(folder, 
                 species,

@@ -18,49 +18,67 @@ from .forms import *
 FRAMES = 3
 
 def list_files_in_folder(subfolder):
-    dest = os.path.join(settings.MEDIA_ROOT, 'input', subfolder)
-    files = []
-    if os.path.exists(dest):
-        files = os.listdir(dest)
-        files.sort()
+    files = {}
+    join = os.path.join
+    exists = os.path.exists
+    dest = join(settings.MEDIA_ROOT, 'input', subfolder)
+    for filetype in ["BAM", "FASTA", "Other"]:
+        dest_sub = join(dest, filetype)
+        if exists(dest_sub):
+            files[filetype] = os.listdir(dest_sub)
+            files[filetype].sort()
     return files
+
 
 class HomeView(View):
     def get(self, request):
         return render(request, 'aipservice/home.html', {'max_file_size': settings.MAX_FILE_SIZE, 'max_store_days': settings.MAX_STORE_DAYS})
     
-class GlossaryView(View):
-    def get(self, request):
-        return render(request, 'aipservice/glossary.html')
     
 class UserProfileView(View):
     def get(self, request):
         return render(request, 'aipservice/user_profile.html')    
     
-    
+def get_filetype(filename):
+    ame, ext = os.path.splitext(filename)
+    ext = ext.lower()
+    if ext == ".bam" or ext == ".sam":
+        filetype = "BAM"
+    elif ext == ".fa":
+        filetype = "FASTA"
+    else:
+        filetype = "Other"
+    return filetype
+
 class UploadDataView(View):
     def get_context(self, user_id, form):
-        files = [[file, os.path.join(settings.MEDIA_ROOT, 'input', 'users', user_id, file)] for file in list_files_in_folder(os.path.join('users', user_id))]
-        
-        my_files = [{"name": item[0], 
-                     "datetime": datetime.datetime.fromtimestamp(os.stat(item[1]).st_mtime),
-                     'size': os.path.getsize(item[1])
-                    } for item in files]
-        
         context = {'form': form, 
                    'default_files': list_files_in_folder('default'),
-                   'my_files': my_files,
                    'max_upload_size': get_max_upload_size(),
                    'max_store_days': settings.MAX_STORE_DAYS
                   }
+        
+        if user_id:
+            my_files = {}
+            listfiles = list_files_in_folder(os.path.join('users', user_id))
+            for filetype, files in listfiles.items():
+                my_files[filetype] = []
+                for file in files:
+                    filepath = os.path.join(settings.MEDIA_ROOT, 'input', 'users', user_id, filetype, file)
+                    my_files[filetype].append({"name": file, 
+                     "datetime": datetime.datetime.fromtimestamp(os.stat(filepath).st_mtime),
+                     'size': os.path.getsize(filepath)
+                    })
+            context["my_files"] = my_files
         return context
     
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('account_login')
-    
+    def get(self, request):    
         form = UploadFileForm()        
-        return render(request, 'aipservice/datasets.html', self.get_context(str(request.user.id), form))
+        if request.user.is_authenticated:
+            user_id = str(request.user.id)
+        else:
+            user_id = None
+        return render(request, 'aipservice/datasets.html', self.get_context(user_id, form))
                          
     def post(self, request):
         if not request.user.is_authenticated:
@@ -68,9 +86,12 @@ class UploadDataView(View):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
-            dest = os.path.join(settings.MEDIA_ROOT, 'input', 'users', str(request.user.id))
+            filetype = get_filetype(file.name)
+                
+            dest = os.path.join(settings.MEDIA_ROOT, 'input', 'users', str(request.user.id), filetype)
             if not os.path.exists(dest):
-                os.mkdir(dest)            
+                os.makedirs(dest, exist_ok=True)            
+            
             with open(os.path.join(dest, file.name), 'wb+') as destination:
                 for chunk in file.chunks():
                     destination.write(chunk)
@@ -80,24 +101,19 @@ class UploadDataView(View):
         
     
 class SubmitOffsetView(View):
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('account_login')
-        
+    def get(self, request):        
         form = AsiteOffsetsJobForm()
         return render(request, 'aipservice/submit_offset.html', { 'form': form })
     
     def post(self, request):
-        if not request.user.is_authenticated:
-            raise PermissionDenied
-        
         form = AsiteOffsetsJobForm(request.POST, request.FILES)
         context = {}        
 
         if form.is_valid():
             job = form.save(commit=False)
             job.status = "PENDING"
-            job.user = request.user
+            if request.user.is_authenticated:
+                job.user = request.user
             job.save()
                 
             current_site = Site.objects.get_current()
@@ -118,30 +134,26 @@ class SubmitOffsetView(View):
                                 job.include,
                                 job.alignment_type,
                                 job.get_profile)
-            
-            return redirect('offset_report', job_id = job.id)
+            job.task_id = task.id
+            job.save()
+            return redirect('offset_report', task_id = job.task_id)
         else:
             context['form'] = form
             return render(request, 'aipservice/submit_offset.html', context)
         
 class SubmitProfileView(View):
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('account_login')
-        
+    def get(self, request):        
         form = AsiteProfilesJobForm()
         return render(request, 'aipservice/submit_profile.html', { 'form': form })
     
     def post(self, request):
-        if not request.user.is_authenticated:
-            raise PermissionDenied
-        
         form = AsiteProfilesJobForm(request.POST, request.FILES)
         context = {}        
 
         if form.is_valid():
             job = form.save(commit=False)
-            job.user = request.user
+            if request.user.is_authenticated:
+                job.user = request.user
             job.status = "PENDING"
             job.save()
                 
@@ -158,23 +170,19 @@ class SubmitProfileView(View):
                                 job.three_prime, 
                                 job.overlap, 
                                 job.alignment_type)
-            
-            return redirect('profile_report', job_id = job.id)
+            job.task_id = task.id
+            job.save()
+            return redirect('profile_report', task_id = job.task_id)
         else:
             context['form'] = form
             return render(request, 'aipservice/submit_profile.html', context)
 
 class OffsetReportView(View):
-    def get(self, request, job_id):
-        job = get_object_or_404(AsiteOffsetsJob, id=job_id)
+    def get(self, request, task_id):
+        job = get_object_or_404(AsiteOffsetsJob, task_id=task_id)
         species = job.get_species_display()
-        
-        if not request.user.is_authenticated:
-            return redirect('account_login')
-        elif not (request.user.is_superuser or job.user == request.user):
-            raise PermissionDenied
             
-        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
+        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job.id))
         log_path = os.path.join(folder, "aip.log")
         if not os.path.exists(log_path):
             log_path = None
@@ -194,16 +202,11 @@ class OffsetReportView(View):
         return render(request, 'aipservice/offset_report.html', {"job": job, "species": species, "log_path": log_path, "offset_path": offset_path, "perc_gene_path": perc_gene_path, "profile_path": profile_path})
     
 class ProfileReportView(View):
-    def get(self, request, job_id):    
-        job = get_object_or_404(AsiteProfilesJob, id=job_id)
+    def get(self, request, task_id):    
+        job = get_object_or_404(AsiteProfilesJob, task_id=task_id)
         species = job.get_species_display()
-        
-        if not request.user.is_authenticated:
-            return redirect('account_login')
-        elif not (request.user.is_superuser or job.user == request.user):
-            raise PermissionDenied
             
-        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job_id))
+        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job.id))
         
         log_path = os.path.join(folder, "aip.log")
         if not os.path.exists(log_path):
@@ -232,7 +235,7 @@ def get_job_statistics(request):
         raise PermissionDenied
             
     job_count = Job.objects.count()
-    user_count = User.objects.count()
+    email_count = Job.objects.values("email").distinct().count()
     github_stats = None
     if 'GITHUB_STATS_FILE' in os.environ:
         filepath = os.path.join(settings.MEDIA_ROOT, os.environ['GITHUB_STATS_FILE'])
@@ -241,7 +244,7 @@ def get_job_statistics(request):
                 github_stats = json.load(f)
 
     return JsonResponse({'job_count': job_count,
-                         'user_count': user_count,
+                         'email_count': email_count,
                          'github_stats': github_stats
                         })
 
@@ -352,7 +355,8 @@ def download(request, path):
     raise Http404
     
 def delete_file(request, file):
-    path = os.path.join(settings.MEDIA_ROOT, 'input', 'users', str(request.user.id), file)
+    filetype = get_filetype(file)
+    path = os.path.join(settings.MEDIA_ROOT, 'input', 'users', str(request.user.id), filetype, file)
     if os.path.exists(path):
         os.remove(path)
         return redirect('datasets')

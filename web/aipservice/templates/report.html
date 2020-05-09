@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
+{% if user.is_authenticated %}
 <div><a href="{% url 'job_list' %}" ><span class="glyphicon glyphicon-home"></span> My Jobs</a> </div>
+{% endif %}
 <h2>{{job.name}} </h2> 
 <i>Submitted by {{ job.user.username}} on <span class="datetime"> {{ job.create_date|date:'Y-m-d H:i T'}} </span></i>
 {% if job.status == "PENDING" %}
