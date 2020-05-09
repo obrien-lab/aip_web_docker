@@ -26,8 +26,8 @@
         <p>Jobs</p>
     </div>
     <div class="col-sm-4 admin-stats">
-        <h2 id="user"></h2>
-        <p>Users</p>
+        <h2 id="email"></h2>
+        <p>User Emails</p>
     </div>    
 </div>
 <div class="row">
@@ -48,7 +48,7 @@
         dataType: 'json',
         success: function (data) {
             $('#job').text(data['job_count']);
-            $('#user').text(data['user_count']);
+            $('#email').text(data['email_count']);
             if (data['github_stats']) {
                 $('#github-view').text(data['github_stats']['views']);
                 $('#github-clone').text(data['github_stats']['clones']);
