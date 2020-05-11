@@ -108,8 +108,12 @@
   </div>
   <script>
     $(".datetime").text(function() {
-      var date = new Date($(this).text());
-      return date.toLocaleString();
+      var utcdate = $(this).text();
+      try {
+          return new Date(utcdate.replace(/-/g, "/")).toLocaleString();
+      } catch(e) {
+          return utcdate;
+      }
     });
   </script>
   {% block javascript %}{% endblock %}

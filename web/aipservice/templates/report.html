@@ -4,7 +4,7 @@
 <div><a href="{% url 'job_list' %}" ><span class="glyphicon glyphicon-home"></span> My Jobs</a> </div>
 {% endif %}
 <h2>{% block report_type %}{% endblock %} {{job.name}} </h2> 
-<i>Submitted {% if user.is_authenticated %} by {{ job.user.username}} {% endif %}on <span class="datetime"> {{ job.create_date|date:'Y-m-d H:i T'}} </span></i>
+<i>Submitted {% if job.user %} by {{ job.user.username}} {% endif %}on <span class="datetime"> {{ job.create_date|date:'Y-m-d H:i T'}} </span></i>
 {% if job.status == "PENDING" %}
 <h4>Status: <span class="label label-default">{{job.status}}</span></h4>
 {% elif job.status == "SUCCESS" %}

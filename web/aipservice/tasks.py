@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 def send_notification_mail(job, domain, job_type):
     # send notification email
     if settings.EMAIL_HOST_USER:
-        subject = 'A-site IP job finished'
-        message = 'Your A-site IP job has finished. Please visit %s/%s_report/%s to view the results.' % (domain, job_type, job.task_id)
+        subject = 'Ribo-Seq A-site identifier job finished'
+        message = 'Your Ribo-Seq A-site identifier job has finished. Please visit %s/%s_report/%s to view the results.' % (domain, job_type, job.task_id)
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [job.email,]
         send_mail( subject, message, email_from, recipient_list )
