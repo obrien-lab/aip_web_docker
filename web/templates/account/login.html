@@ -1,0 +1,47 @@
+{% extends "account/base.html" %}
+{% load i18n account socialaccount %}
+{% block head_title %}{% trans "Sign In" %}    {% endblock %}
+{% block css %}
+<style>
+    
+  .well.login-well {
+    background-color: #ffffff;
+    max-width: 300px;
+  }
+  .social {
+    box-shadow: 0 2px 3px 0 rgba(0,0,0,.25);
+    cursor: pointer;
+    display: inline-block;
+    height: 40px;
+    margin: 0 3px 3px 0;
+    width: 100%;
+  }
+</style>
+{% endblock %}
+{% block content %}
+  <div class="container well login-well">
+    <a class="social btn btn-outline-dark" href="/accounts/google/login/?process=login" role="button" style="text-transform:none;text-decoration:none;color:black">
+      <img width="20px" style="margin-bottom:3px; margin-right:16px" alt="Google sign-in" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"/>
+      Sign in with Google
+    </a>
+    <hr>
+    <form class="login" method="POST" action="{% url 'account_login' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+      {% endif %}
+      <button class="btn btn-primary" type="submit">{% trans "Sign In" %}</button>
+      <hr>
+      <div>
+        <a class="text-muted" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+      </div>
+      <div>
+        <a class="text-muted" href="{{ signup_url }}">Sign up</a>
+      </div>
+    </form>
+  </div>
+
+
+{% endblock %}
+

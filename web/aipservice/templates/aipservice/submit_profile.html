@@ -26,7 +26,7 @@
     <div class="form-check">
       <input class="form-check-input" type="radio"  name="alignment_type" value="genome" checked> 
       <label class="form-check-label">Genome</label> 
-      <span class="form-text text-muted">This option is preferable for spaner genomes (e.g. E.coli, S. cerevisiae) with simple gene structures with fewer introns and isoforms.</span>
+      <span class="form-text text-muted">This option is preferable for spaner genomes (e.g. <i>E. coli</i>, <i>S. cerevisiae</i>) with simple gene structures and fewer introns and isoforms.</span>
     </div>
     <div class="form-check">
       <input class="form-check-input" type="radio" name="alignment_type" value="transcriptome"> 
@@ -49,7 +49,7 @@
     </select>
     <span class="error">{{form.annotation_file.errors}}</span>
     <div class="form-text text-muted" id="genome-annotation">
-      <p>For genome, the annotation file could be in the following format:</p>
+      <p>For genome, the annotation file could be a .tab file with the following fields (header is not needed in the .tab file):</p>
       <table class="table table-bordered">
         <thead>
           <th>Gene name</th>
@@ -87,10 +87,10 @@
           </tr>
         </tbody>
       </table>
-      <p>Alternatively, a GFF file can also be given as input for annotations but the script is optimized for processing only GFF files for E. coli and S. cerevisiae.</p>
+      <p>Alternatively, a GFF file can also be given as input for annotations, but the script is optimized for processing GFF files for <i>E. coli</i> and <i>S. cerevisiae</i> only.</p>
     </div> 
     <div class="form-text text-muted" id="trans-annotation" style="display: none">
-      <p>For transcriptome, the annotation file could be in the following format:</p>
+      <p>For transcriptome, the annotation file could be a .tab file with the following fields (header is not needed in the .tab file):</p>
       <table class="table table-bordered">
         <thead>
           <th>Gene name</th>

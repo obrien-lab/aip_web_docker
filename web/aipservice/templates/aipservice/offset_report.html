@@ -1,5 +1,6 @@
 {% extends 'report.html' %}
 {% load filename %}
+{% block report_type %}Get A-site Offsets: {% endblock %}
 {% block report %}
 <div>
   <h4>Download</h4>
@@ -42,13 +43,13 @@
 <div>
   <h4>Parameters</h4>
   <ul>
-      <li>Species: {{species}}</li>
+      <li>Species: <i>{{species}}</i></li>
       <li>Alignment type: {{job.alignment_type}} </li>
       <li>BAM or SAM file: {{job.bam_file|filename}} </li>
       <li>Annotation file: {{job.annotation_file|filename}} </li>
       <li>FASTA file: {{job.fasta_file|filename}} </li>
       <li>Fragment size: min {{job.min_frag}} nt, max {{job.max_frag}} nt</li>
-      <li>Quantify reads from: {% if job.three_prime %} 3 {% else %} 5 {% endif%}' end</li>
+      <li>Quantify reads from: {% if job.three_prime %}3{% else %}5{% endif%}' end</li>
       <li>Overlap: {{job.overlap}} nt</li>
       <li>Minimum average number of reads per codon for filtering genes: {{job.threshold_avg_reads}}</li>
       <li>Minimum percentage of genes with the most probable offset for assigning a unique offset: {{job.threshold_gene_pct}}%</li>

@@ -5,7 +5,7 @@
     (None)
 {% endfor %}
 </optgroup>
-{% if user.is_authenticated %}
+{% if my_files %}
 <optgroup label="-- My Files --">
 {% for file in my_files %}
   <option value="{{file.filepath}}">{{file.filename}}</option>

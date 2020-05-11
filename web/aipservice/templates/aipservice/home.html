@@ -1,26 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
 <div>
-<h4>About</h4>    
+<h4>About</h4>
 <p>Identifying the A-site<a href="#" data-toggle="tooltip" data-placement="bottom" title="The codon that is being translated whose ribosome density is being estimated by quantification of mapped reads."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> and P-site<a href="#" data-toggle="tooltip" data-placement="bottom" title="The codon immediately preceding the codon present in the A-site. This codon has been decoded in the ribosome and the corresponding amino acid will form a peptide bond with the amino acid encoded by the codon in the A-site."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> locations on ribosome-protected mRNA fragments from Ribo-Seq
 experiments is a fundamental step in the quantitative analysis of transcriptome-wide translation
-properties at the codon level. Many analyses of Ribo-Seq data have utilized heuristic approaches applied
-to a narrow range of fragment sizes<a href="#" data-toggle="tooltip" data-placement="bottom" title="The size of the read obtained in the Ribo-Seq Next-Generation Sequencing (NGS) experiment that represents a copy of the mRNA fragment protected by the ribosome and cleaved by the RNase enzyme."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> to identify the A-site. In this study, we use Integer Programming to
-identify the A-site by maximizing an objective function that reflects the fact that the ribosome’s A-site
-on ribosome-protected fragments must reside between the second and stop codons of an mRNA. This
-identifies the A-site location as a function of the fragment’s size and its 5′ end reading frame<a href="#" data-toggle="tooltip" data-placement="bottom" title="The reading frame in which the 5' end of the read is."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> in Ribo-Seq
-data generated from S. cerevisiae and mouse embryonic stem cells. The correctness of the identified
+properties at the codon level. Ahmed, N. <i>et al</i> developed an integer programming method to
+identify the A-site location by maximizing an objective function that reflects the fact that the ribosome’s A-site on ribosome-protected fragments must reside between the second and stop codons of an mRNA. This identifies the A-site location as a function of the fragment’s size<a href="#" data-toggle="tooltip" data-placement="bottom" title="The size of the read obtained in the Ribo-Seq Next-Generation Sequencing (NGS) experiment that represents a copy of the mRNA fragment protected by the ribosome and cleaved by the RNase enzyme."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> and the reading frame<a href="#" data-toggle="tooltip" data-placement="bottom" title="A reading frame refers to one of three possible ways of reading a sequence."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> in Ribo-Seq
+    data generated from <i>S. cerevisiae</i>, <i>E. coli</i> and mouse embryonic stem cells. The correctness of the identified
 A-site locations is demonstrated by showing that this method, as compared to others, yields the largest
 ribosome density at established stalling sites. By providing greater accuracy and utilization of a wider
-range of fragment sizes, our approach increases the signal-to-noise ratio of underlying biological signals
-associated with translation elongation at the codon length scale [1].</p>
+range of fragment sizes, this method increases the signal-to-noise ratio of underlying biological signals
+associated with translation elongation at the codon length scale [<a href="#ref">1</a>].</p>
 <h4>Use this web service</h4>
 <ol>
     <li><a href="{% url 'account_login' %}">Login</a>. You can login with your existing Google account or sign up with the website. While login is not required to submit jobs, users who have logged in are able to upload their own files and review their job history. </li>
     <li><a href="{% url 'datasets' %}">Upload Data</a>. This web service provides three default datasets. You can also upload your own files. Each file is limited to {{max_file_size|filesizeformat}} and will be stored for up to {{max_store_days}} days.</li>
-    <li><a href="{% url 'submit_offset' %}">Get A-site Offsets</a>. Here, you can submit a job to calculate A-site offsets<a href="#" data-toggle="tooltip" data-placement="bottom" title="The distance between the 5' (or 3') end and the A-site codon while maintaining the same reading frame."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a>. You can also choose whether to generate A-site profiles from the calculated offsets. An email address is required so that a notification can be sent to you once the job finishes.</li>
-    <li><a href="{% url 'submit_profile' %}">Get A-site Profiles</a>. You can also upload your own A-site offset table and generate A-site profiles from that. An email address is required so that a notification can be sent to you once the job finishes.</li>
-    <li><a href="{% url 'job_list' %}">My Jobs</a>. This page lists your jobs grouped by job type. Following the links to each job, you can view and download the results.</li>
+    <li><a href="{% url 'submit_offset' %}">Get A-site Offsets</a>. Here, you can submit a job to calculate A-site offsets<a href="#" data-toggle="tooltip" data-placement="bottom" title="The distance between the 5' (or 3') end and the A-site codon while maintaining the same reading frame."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a>. You can also choose whether to generate A-site read density profiles from the calculated offsets. An email address is required so that a notification can be sent to you once the job finishes.</li>
+    <li><a href="{% url 'submit_profile' %}">Get A-site Profiles</a>. You can also upload your own A-site offset table and generate A-site read density profiles from that. An email address is required so that a notification can be sent to you once the job finishes.</li>
+    <li><a href="{% url 'job_list' %}">My Jobs</a>. This page lists your jobs grouped by job type. Following the link to each job, you can view and download the results. You can also cancel a job on this page if the job has not finished yet.</li>
 </ol>
     
 <h4>Set up your own web service</h4>
@@ -28,7 +25,7 @@ associated with translation elongation at the codon length scale [1].</p>
 <h4>Contact</h4>
 <p>E-mail: <a href="mailto:asite.ip@gmail.com">asite.ip@gmail.com</a> </p>
 <h4>Reference</h4>
-<p>[1] Ahmed, N., Sormanni, P., Ciryam, P. et al. Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming. Sci Rep 9, 6256 (2019). <a href="https://doi.org/10.1038/s41598-019-42348-x">https://doi.org/10.1038/s41598-019-42348-x</a></p>
+<p id="ref">[1] Ahmed, N., Sormanni, P., Ciryam, P. et al. Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming. Sci Rep 9, 6256 (2019). <a href="https://doi.org/10.1038/s41598-019-42348-x">https://doi.org/10.1038/s41598-019-42348-x</a></p>
 </div>
 {% endblock %}
 
