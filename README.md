@@ -69,6 +69,8 @@ EMAIL_HOST_PASSWORD=mypassword
 
 7. Configue authentication providers. This application uses [django-allauth](https://django-allauth.readthedocs.io/en/latest/) for user authentication. Extra configuration may be needed on the provider side. For example, to use Google account authentication, you need to register the application with Google first. Please follow the [intructions](https://django-allauth.readthedocs.io/en/latest/providers.html).
 
+8. Enable password for Redis. By default, Redis password is disabled as in file docker_compose.yml. You can enable Redis password by adding "command: redis-server --requirepass ${REDIS_PASS}" to the Redis service as in file production.yml, and then define the environment variable REDIS_PASS in file .env.
+
 ### Reference
 [1] Ahmed, N., Sormanni, P., Ciryam, P. et al. Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming. Sci Rep 9, 6256 (2019). https://doi.org/10.1038/s41598-019-42348-x
 
