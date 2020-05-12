@@ -16,7 +16,6 @@ RUN wget https://github.com/samtools/samtools/releases/download/1.10/samtools-1.
 	make
 
 ENV PATH=${PATH}:/usr/src/samtools-1.10 
-RUN python -m pip install --upgrade pip
 
 RUN mkdir -p /opt/app
 RUN mkdir -p /opt/app/aip
@@ -26,5 +25,5 @@ RUN mkdir -p /files/input
 COPY requirements.txt /opt/app/
 COPY . /opt/app/aip
 WORKDIR /opt/app
-RUN python -m pip install -r requirements.txt
+RUN python -m pip install --upgrade pip && python -m pip install -r requirements.txt
 

@@ -47,6 +47,7 @@ services:
   redis:
     restart: always
     image: redis:latest
+    command: redis-server --requirepass ${REDIS_PASS}
     ports:
       - "6379:6379"
 

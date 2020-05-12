@@ -15,7 +15,7 @@ def send_notification_mail(job, domain, job_type):
     if settings.EMAIL_HOST_USER:
         subject = 'Ribo-Seq A-site identifier job finished'
         message = 'Your Ribo-Seq A-site identifier job has finished. Please visit %s/%s_report/%s to view the results.' % (domain, job_type, job.task_id)
-        email_from = settings.EMAIL_HOST_USER
+        email_from = '"A-site Identifier" <%s@gmail.com>' % settings.EMAIL_HOST_USER
         recipient_list = [job.email,]
         send_mail( subject, message, email_from, recipient_list )
     

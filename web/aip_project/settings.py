@@ -136,10 +136,16 @@ if not os.path.exists(MEDIA_ROOT):
 MAX_FOLDER_SIZE = 429496729600 # 400 GB
 MAX_FILE_SIZE = 21474836480 # 20 GB
 MAX_STORE_DAYS = 7
-    
+
 # celery
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+if 'REDIS_PASS' in os.environ:
+    REDIS_PASS = os.environ['REDIS_PASS']
+    CELERY_BROKER_URL = 'redis://:%s@redis:6379/0' % REDIS_PASS
+    CELERY_RESULT_BACKEND = 'redis://:%s@redis:6379/0' % REDIS_PASS
+else:
+    CELERY_BROKER_URL = 'redis://redis:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
