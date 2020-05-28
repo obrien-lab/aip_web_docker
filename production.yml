@@ -35,6 +35,7 @@ services:
     links:
       - web:web
     volumes:
+      - ./web/static:/var/www/static
       - /root:/etc/nginx/certs
 
   postgres:

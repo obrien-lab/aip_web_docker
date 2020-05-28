@@ -37,6 +37,8 @@ services:
       - "80:80"
     links:
       - web:web
+    volumes:
+      - ./web/static:/var/www/static
 
   postgres:
     restart: always
