@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div>
-<h4>About</h4>
+<h4>About RiboA</h4>
 <p>Identifying the A-site<a href="#" data-toggle="tooltip" data-placement="bottom" title="The codon that is being translated whose ribosome density is being estimated by quantification of mapped reads."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> and P-site<a href="#" data-toggle="tooltip" data-placement="bottom" title="The codon immediately preceding the codon present in the A-site. This codon has been decoded in the ribosome and the corresponding amino acid will form a peptide bond with the amino acid encoded by the codon in the A-site."><i class="fa fa-question-circle" style="vertical-align: super;"></i></a> locations on ribosome-protected mRNA fragments from Ribo-Seq
 experiments is a fundamental step in the quantitative analysis of transcriptome-wide translation
 properties at the codon level. Ahmed, N. <i>et al</i> developed an integer programming method to
@@ -11,7 +11,7 @@ A-site locations is demonstrated by showing that this method, as compared to oth
 ribosome density at established stalling sites. By providing greater accuracy and utilization of a wider
 range of fragment sizes, this method increases the signal-to-noise ratio of underlying biological signals
 associated with translation elongation at the codon length scale [<a href="#ref">1</a>].</p>
-<h4>Use this web service</h4>
+<h4>How to use this web service</h4>
 <ol>
     <li><a href="{% url 'account_login' %}">Login</a>. You can login with your existing Google account or sign up with the website. While login is not required to submit jobs, users who have logged in are able to upload their own files and review their job history. </li>
     <li><a href="{% url 'datasets' %}">Upload Data</a>. This web service provides three default datasets. You can also upload your own files. Each file is limited to {{max_file_size|filesizeformat}} and will be stored for up to {{max_store_days}} days.</li>
@@ -20,7 +20,7 @@ associated with translation elongation at the codon length scale [<a href="#ref"
     <li><a href="{% url 'job_list' %}">My Jobs</a>. This page lists your jobs grouped by job type. Following the link to each job, you can view and download the results. You can also cancel a job on this page if the job has not finished yet.</li>
 </ol>
     
-<h4>Set up your own web service</h4>
+<h4>How to set up your own web service</h4>
     The codes for this containerized web application are available at Github. You may follow the link <a href="https://github.com/obrien-lab/aip_web_docker">https://github.com/obrien-lab/aip_web_docker</a> to clone the codes and set up your own web service. 
 <h4>Contact</h4>
 <p>E-mail: <a href="mailto:asite.ip@gmail.com">asite.ip@gmail.com</a> </p>
