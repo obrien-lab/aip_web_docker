@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Asite IP method</title>
+  <title>RiboA</title>
+  <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
   {% block css %}{% endblock %}
   <style>
   #header {
@@ -50,6 +51,13 @@
   .errorlist {
       color: red;
   }
+      
+  #psu-logo {
+    float:left;
+    padding: 12px;
+    width: 300px;
+    height: 120px;  
+  }
   </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
@@ -61,8 +69,11 @@
 <body>
   <div class="jumbotron" id="header">
     <div class="container">
-      <h1>Ribo-Seq A-site Identifier</h1>      
-      <p>Identifying A-site locations on ribosome-protected mRNA fragments using Integer Programming</p>
+      <img id="psu-logo" src="/static/PSU_CDS_RGB_2C.png" alt="PSU Institute for Computational and Data Sciences">
+      <div class="">
+        <h1>Ribo-Seq A-site Identifier</h1>      
+        <p>Identifying A-site locations on ribosome-protected mRNA fragments using Integer Programming</p>
+      </div>
     </div>
   </div>
   <nav class="navbar">
