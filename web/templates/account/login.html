@@ -34,10 +34,10 @@
       <button class="btn btn-primary" type="submit">{% trans "Sign In" %}</button>
       <hr>
       <div>
-        <a class="text-muted" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+        <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
       </div>
       <div>
-        <a class="text-muted" href="{{ signup_url }}">Sign up</a>
+        <a href="{{ signup_url }}">Sign up</a>
       </div>
     </form>
   </div>
