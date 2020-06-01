@@ -1683,6 +1683,7 @@ def run_offset(folder,
         # remove the scratch folder
         shutil.rmtree(scratch)
     except Exception as e:
+        logger.error("Error getting A-site offsets: %s", str(e))
         # remove the scratch folder
         shutil.rmtree(scratch)
         raise e
@@ -1735,6 +1736,7 @@ def run_profile(folder,
         # remove the scratch folder
         shutil.rmtree(scratch)
     except Exception as e:
+        logger.error("Error getting A-site profiles: %s", str(e))
         # remove the scratch folder
         shutil.rmtree(scratch)
         raise e
