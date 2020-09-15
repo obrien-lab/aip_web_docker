@@ -1330,8 +1330,8 @@ def asite_algorithm_improved_second_offset_correction(reads_dict,
     outfile.write('Frag size\tFrame_0\tFrame_1\tFrame_2\n')
     for fsize in range(frag_min, frag_max + 1):
         try:
-            outfile.write(str(fsize) + '\t' + str(dict_most_prob_offsets[fsize][0]['off']) + '\t' + str(dict_most_prob_offsets[fsize][1]['off']) + '\t' + str(
-                dict_most_prob_offsets[fsize][2]['off']) + '\n')
+            outfile.write(str(fsize) + '\t' + (dict_most_prob_offsets[fsize][0]['off'] or 'NA') + '\t' +(dict_most_prob_offsets[fsize][1]['off'] or 'NA') + '\t' + (
+                dict_most_prob_offsets[fsize][2]['off'] or 'NA') + '\n')
         except KeyError:
             outfile.write(str(fsize) + '\tNA\tNA\tNA\n')
 
