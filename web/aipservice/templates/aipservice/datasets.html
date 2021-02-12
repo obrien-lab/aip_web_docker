@@ -13,7 +13,7 @@
   <h4>{{ filetype }}</h4>
   <ul>
   {% for file in files %}
-      <li><i>{{ file }}</i></li>
+      <li><i><a href="{% url 'download' file.filepath %}">{{ file.filename }}</a></i></li>
   {% empty %}
       (None)
   {% endfor %}
@@ -35,7 +35,7 @@
       {% for file in files %}
         <tr>
           <td>{{filetype }} </td>
-          <td>{{ file.name }}</td>
+            <td><a href="{% url 'download' file.path %}">{{ file.name }}</a></td>
           <td>{{ file.size|filesizeformat}}</td>
           <td class="datetime">{{ file.datetime|date:'Y-m-d H:i T' }}</td>
           <td><a href="{% url 'delete_file' file.name %}" onclick="return confirm('Are you sure you want to delete the file?')"><span class="glyphicon glyphicon-trash"></span></a></td>

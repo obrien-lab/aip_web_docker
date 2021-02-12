@@ -25,8 +25,9 @@ def list_files_in_folder(subfolder):
     for filetype in ["BAM", "FASTA", "Other"]:
         dest_sub = join(dest, filetype)
         if exists(dest_sub):
-            files[filetype] = os.listdir(dest_sub)
-            files[filetype].sort()
+            filenames = os.listdir(dest_sub)
+            filenames.sort()
+            files[filetype] = [{'filename': f, 'filepath': os.path.join(dest_sub, f) } for f in filenames]
     return files
 
 
@@ -64,10 +65,10 @@ class UploadDataView(View):
             for filetype, files in listfiles.items():
                 my_files[filetype] = []
                 for file in files:
-                    filepath = os.path.join(settings.MEDIA_ROOT, 'input', 'users', user_id, filetype, file)
-                    my_files[filetype].append({"name": file, 
-                     "datetime": datetime.datetime.fromtimestamp(os.stat(filepath).st_mtime),
-                     'size': os.path.getsize(filepath)
+                    my_files[filetype].append({"name": file["filename"], 
+                     "path": file["filepath"],
+                     "datetime": datetime.datetime.fromtimestamp(os.stat(file["filepath"]).st_mtime),
+                     'size': os.path.getsize(file["filepath"])
                     })
             context["my_files"] = my_files
         return context
