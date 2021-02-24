@@ -11,6 +11,7 @@ A-site locations is demonstrated by showing that this method, as compared to oth
 ribosome density at established stalling sites. By providing greater accuracy and utilization of a wider
 range of fragment sizes, this method increases the signal-to-noise ratio of underlying biological signals
 associated with translation elongation at the codon length scale [<a href="#ref">1</a>].</p>
+<p>RiboA assumes the ribosomes are undergoing steady-state translation, and it can only be applied to steady-state ribosome profiling data. RiboA is not appropriate for datasets from non-steady-state experiments, such as the ribosome run-off experiments where initiation is blocked by harringtonine treatment.</p>
 <h4>How to use this web service</h4>
 <ol>
     <li><a href="{% url 'account_login' %}">Login</a>. You can login with your existing Google account or sign up with the website. While login is not required to submit jobs, users who have logged in are able to upload their own files and review their job history. </li>
@@ -22,8 +23,10 @@ associated with translation elongation at the codon length scale [<a href="#ref"
 <iframe width="560" height="315" src="https://www.youtube.com/embed/EnJBlrU0nbs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <h4>How to set up your own web service</h4>
     The codes for this containerized web application are available at Github. You may follow the link <a href="https://github.com/obrien-lab/aip_web_docker">https://github.com/obrien-lab/aip_web_docker</a> to clone the codes and set up your own web service. 
+<h4>Advanced usage</h4>
+<p>The key script to identify A-site offsets and to generate A-site density profiles is <a href="https://github.com/obrien-lab/aip_web_docker/blob/master/web/aipservice/aip.py">here</a>. Specifically, the function "run_offset" is the entry point to identify A-site offsets, and the function "run_profile" is the entry point to generate A-site density profiles. Computationally literate users can run this script in command line or adapt the script to their own need.</p>
 <h4>Contact</h4>
-<p>E-mail: <a href="mailto:asite.ip@gmail.com">asite.ip@gmail.com</a> </p>
+<p>E-mail: <a href="mailto:epo2@psu.edu">epo2@psu.edu</a> </p>
 <h4>Reference</h4>
 <p id="ref">[1] Ahmed, N., Sormanni, P., Ciryam, P. et al. Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming. Sci Rep 9, 6256 (2019). <a href="https://doi.org/10.1038/s41598-019-42348-x">https://doi.org/10.1038/s41598-019-42348-x</a></p>
 </div>
