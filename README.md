@@ -71,6 +71,9 @@ EMAIL_HOST_PASSWORD=mypassword
 
 8. Enable password for Redis. By default, Redis password is disabled as in file docker_compose.yml. You can enable Redis password by adding "command: redis-server --requirepass ${REDIS_PASS}" to the Redis service as in file production.yml, and then define the environment variable REDIS_PASS in file .env.
 
+### Advanced usage
+The key piece of code to identify A-site offset and generate A-site density profiles is in script https://github.com/obrien-lab/aip_web_docker/blob/master/web/aipservice/aip.py. Computationally literate users can run this script in command line or adapt the script to their own need. 
+
 ### Reference
 [1] Ahmed, N., Sormanni, P., Ciryam, P. et al. Identifying A- and P-site locations on ribosome-protected mRNA fragments using Integer Programming. Sci Rep 9, 6256 (2019). https://doi.org/10.1038/s41598-019-42348-x
 
