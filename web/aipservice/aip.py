@@ -711,7 +711,7 @@ def find_overlapping_genes(dict_cds_info, dict_gene, extra_len=0):
     return overlap_list
 
 
-def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_prime):
+def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_prime, map_frame0):
     # Current support only for quantified read counts from 5' end. Offset from 3' end can be implemented.
 
     dict_len = {}
@@ -719,7 +719,7 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
     # We parse the files for each fragment size which contain the read counts aligned by 5' end for CDS region along with a certain length before and beyond the CDS
     for fsize in range(frag_min, frag_max + 1):
         read_count_dict[fsize] = {}
-        with open(os.path.join(scratch, 'Read_counts_' + str(fsize) + '.tab')) as count_file:
+        with open(os.path.join(scratch, 'Read_counts_' + str(fsize) + map_frame0 + '.tab')) as count_file:
             for lines in count_file:
                 fields = lines.strip().split('\t')
                 gene = fields[0]
@@ -783,7 +783,7 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
             asite_dict[gene][fsize] = asite
 
     # Output file for A-site profiles
-    with open(os.path.join(folder, 'A-site_profiles.tab'), 'w') as asite_file:
+    with open(os.path.join(folder, 'A-site_profiles' + map_frame0 + '.tab'), 'w') as asite_file:
         for gene in asite_dict:
             # This adds up the read count at every position from all fragment sizes for every gene
             asite_profile = [sum(x) for x in zip(*asite_dict[gene].values())]
@@ -1631,6 +1631,19 @@ def set_logger(folder):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
+    
+
+# map offset table to frame 0 by subtracting 1 from frame 1 and 2 from frame 2 
+def map_to_frame0(offset_dict):
+    try: 
+        offset_dict_frame0 = {fsize: {0: offset_dict[fsize][0], 1: offset_dict[fsize][1] - 1, 2: offset_dict[fsize][2] - 2} for fsize in offset_dict}
+    except:
+        message = "Error translating the offset table to frame 0."
+        logger.error(message)
+        raise Exception(message)
+        
+    return offset_dict_frame0
+    
 
 def run_offset(folder, 
             species,
@@ -1678,7 +1691,9 @@ def run_offset(folder,
 
         if get_profile:
             offset_dict = {fsize: {frame: offset_dict[fsize][frame]["off"] for frame in offset_dict[fsize]} for fsize in offset_dict}
-            generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime)
+            generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime, "")
+            offset_dict_frame0 = map_to_frame0(offset_dict)
+            generate_asite_profiles(min_frag, max_frag, offset_dict_frame0, scratch, folder, three_prime, "_mapped_to_frame0")
         
         # remove the scratch folder
         shutil.rmtree(scratch)
@@ -1731,7 +1746,9 @@ def run_profile(folder,
             create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
         offset_dict = get_offset_dict_from_file(offset_file)
-        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime)
+        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime, "")
+        offset_dict_frame0 = map_to_frame0(offset_dict)
+        generate_asite_profiles(min_frag, max_frag, offset_dict_frame0, scratch, folder, three_prime, "_mapped_to_frame0")
         
         # remove the scratch folder
         shutil.rmtree(scratch)
