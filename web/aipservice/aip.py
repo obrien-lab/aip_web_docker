@@ -732,7 +732,7 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
     # We parse the files for each fragment size which contain the read counts aligned by 5' end for CDS region along with a certain length before and beyond the CDS
     for fsize in range(frag_min, frag_max + 1):
         read_count_dict[fsize] = {}
-        with open(os.path.join(scratch, 'Read_counts_' + str(fsize) + map_frame0 + '.tab')) as count_file:
+        with open(os.path.join(scratch, 'Read_counts_' + str(fsize) + '.tab')) as count_file:
             for lines in count_file:
                 fields = lines.strip().split('\t')
                 gene = fields[0]
