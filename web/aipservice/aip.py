@@ -710,6 +710,19 @@ def find_overlapping_genes(dict_cds_info, dict_gene, extra_len=0):
 
     return overlap_list
 
+def parse_offset_value(offset_dict, fsize, frame, shift = 0):
+    offset = None
+    try:
+        offset = int(offset_dict[fsize][frame]) - shift
+    # Fsize and frame combinations with ambigious offsets will be of type '15/18' and hence will give value error. They will made offset=0
+    except ValueError:
+        logger.warn = 'Ambigious offset provided for generating A-site profiles. Fragment size: %d, frame: %d, offset: %s. Skip.' % (fsize, frame, offset_dict[fsize][frame])
+    except IndexError:
+        logger.warn = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
+    except:
+        logger.warn = 'Error when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
+        
+    return offset
 
 def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_prime, map_frame0):
     # Current support only for quantified read counts from 5' end. Offset from 3' end can be implemented.
@@ -755,24 +768,17 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
                 # the frame 2 is where we get the value of -1
                 if frame == -1:
                     frame = 2
-                try:
-                    offset = int(offsets[fsize][frame])
-                # Fsize and frame combinations with ambigious offsets will be of type '15/18' and hence will give value error. They will made offset=0
-                except ValueError:
-                    logger.warn = 'Ambigious offset provided for generating A-site profiles. Fragment size: %d, frame: %d, offset: %s. Skip.' % (fsize, frame, offsets[fsize][frame])
-                    offset = 0
-                except IndexError:
-                    logger.warn = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
-                    offset = 0
+                
+                offset = parse_offset_value(offsets, fsize, frame)
 
                 if three_prime:
-                    if offset != 0:
+                    if offset:
                         # Only those pos after length of CDS matter when offseted map to a position in CDS
                         if 0 < pos - offset - 1 < len(asite):
                             # -1 because the Asite profile is a list with index 0
                             asite[pos - offset - 1] += read_count_dict[fsize][gene][pos]
                 else:
-                    if offset != 0:
+                    if offset:
                         # Only those pos before 0 matter when offseted map to a position in CDS
                         if pos < 0 <= pos+offset < len(asite):
                             asite[pos+offset] += read_count_dict[fsize][gene][pos]
@@ -1636,7 +1642,7 @@ def set_logger(folder):
 # map offset table to frame 0 by subtracting 1 from frame 1 and 2 from frame 2 
 def map_to_frame0(offset_dict):
     try: 
-        offset_dict_frame0 = {fsize: {0: offset_dict[fsize][0], 1: offset_dict[fsize][1] - 1 if 1 in offset_dict[fsize] and offset_dict[fsize][1] else None, 2: offset_dict[fsize][2] - 2 if 2 in offset_dict[fsize] and offset_dict[fsize][2] else None} for fsize in offset_dict}
+        offset_dict_frame0 = {fsize: {frame: parse_offset_value(offset_dict, fsize, frame, frame) for frame in range(3)} for fsize in offset_dict}
     except:
         message = "Error translating the offset table to frame 0."
         logger.error(message)
