@@ -199,8 +199,12 @@ class OffsetReportView(View):
         profile_path = os.path.join(folder, 'A-site_profiles.tab')
         if not os.path.exists(profile_path):
             profile_path = None
+            
+        profile_frame0_path = os.path.join(folder, 'A-site_profiles_mapped_to_frame0.tab')
+        if not os.path.exists(profile_frame0_path):
+            profile_frame0_path = None
         
-        return render(request, 'aipservice/offset_report.html', {"job": job, "species": species, "log_path": log_path, "offset_path": offset_path, "perc_gene_path": perc_gene_path, "profile_path": profile_path})
+        return render(request, 'aipservice/offset_report.html', {"job": job, "species": species, "log_path": log_path, "offset_path": offset_path, "perc_gene_path": perc_gene_path, "profile_path": profile_path, "profile_frame0_path": profile_frame0_path})
     
 class ProfileReportView(View):
     def get(self, request, task_id):    
@@ -216,7 +220,12 @@ class ProfileReportView(View):
         profile_path = os.path.join(folder, 'A-site_profiles.tab')
         if not os.path.exists(profile_path):
             profile_path = None
-        return render(request, 'aipservice/profile_report.html', {"job": job, "species": species, "log_path": log_path, "profile_path": profile_path})
+            
+        profile_frame0_path = os.path.join(folder, 'A-site_profiles_mapped_to_frame0.tab')
+        if not os.path.exists(profile_frame0_path):
+            profile_frame0_path = None
+            
+        return render(request, 'aipservice/profile_report.html', {"job": job, "species": species, "log_path": log_path, "profile_path": profile_path, "profile_frame0_path": profile_frame0_path})
     
 class JobListView(View):
     def get(self, request):

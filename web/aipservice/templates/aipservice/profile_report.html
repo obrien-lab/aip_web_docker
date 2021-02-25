@@ -6,6 +6,7 @@
   <h4>Download</h4>
   <ul>
     {% if profile_path %}<li><a href="{% url 'download' profile_path %}">A-site_profiles.tab</a></li>{% endif %}
+    {% if profile_frame0_path %}<li><a href="{% url 'download' profile_frame0_path %}">A-site_profiles_mapped_to_frame0.tab</a></li>{% endif %}
     {% if log_path %}<li><a href="{% url 'download' log_path %}">aip.log</a></li>{% endif %}
   </ul>
 </div>
