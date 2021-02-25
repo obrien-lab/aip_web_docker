@@ -1636,7 +1636,7 @@ def set_logger(folder):
 # map offset table to frame 0 by subtracting 1 from frame 1 and 2 from frame 2 
 def map_to_frame0(offset_dict):
     try: 
-        offset_dict_frame0 = {fsize: {0: offset_dict[fsize][0], 1: offset_dict[fsize][1] - 1, 2: offset_dict[fsize][2] - 2} for fsize in offset_dict}
+        offset_dict_frame0 = {fsize: {0: offset_dict[fsize][0], 1: offset_dict[fsize][1] - 1 if 1 in offset_dict[fsize] and offset_dict[fsize][1] else None, 2: offset_dict[fsize][2] - 2 if 2 in offset_dict[fsize] and offset_dict[fsize][2] else None} for fsize in offset_dict}
     except:
         message = "Error translating the offset table to frame 0."
         logger.error(message)
