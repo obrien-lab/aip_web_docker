@@ -1,3 +1,12 @@
+"""RiboA: Ribo-Seq A-site identifier
+
+This script provides functions to identify A-site locations on ribosome-protected mRNA fragments 
+using Integer Programming and to generate A-site profiles. The two major functions are
+
+    * run_offset - generate A-site offset table, and also A-site profiles if the user desires
+    * run_profile - takes a A-site offset table and generate A-site density profiles
+"""
+
 from __future__ import division
 import logging
 from optparse import OptionParser
@@ -1667,6 +1676,43 @@ def run_offset(folder,
             include,
             alignment_type,
             get_profile):
+    """Generate A-site offset table
+    
+    The function calculates A-site offsets. Users can also choose whether to generate A-site read density profiles from the calculated offsets. 
+    
+    Parameters
+    ------------
+    folder: str
+        The full path to the working folder 
+    species: str
+        The name of the species, "yeast", "ecoli", or other strings
+    bam_file: str
+        The full path to the input BAM file
+    annotation_file: str
+        The full path to the input CDS annotation file. For genome, the annotation file could be a .tab file with the following fields: "Gene name", "Chromosome", "Strand", "CDS Length", "Number of CDS regions", "CDS Start 1", "CDS End 1", "CDS Start 2" and "CDS End 2". Alternatively, a GFF file can also be given as input for annotations, but the script is optimized for processing GFF files for E. coli and S. cerevisiae only. For transcriptome, the annotation file could be a .tab file with the following fields: "Gene name", "Start index", "CDS Length". Header is not needed in the .tab file
+    fasta_file: str
+        The full path to the input FASTA file
+    min_frag: int
+        Min fragment size
+    max_frag: int
+        Max fragment size
+    three_prime: boolean
+       Indicator whether to quantify reads from 3' end. If True, quantify reads from 3' end. If False, quantify reads from 5' end
+    overlap: int
+        Number of nucleotides beyond the CDS region of a gene which are to be avoided to overlap with another gene
+    threshold_avg_reads,
+    threshold_gene_pct,
+    threshold_start_codon,
+    filter_file,
+    include,
+    alignment_type: str
+        Alignment type, either "genome" or "transcriptome"
+    get_profile
+        
+    Returns
+    --------
+    None
+    """
     # set file logger
     set_logger(folder)
     
@@ -1729,6 +1775,42 @@ def run_profile(folder,
                 three_prime, 
                 overlap, 
                 alignment_type):
+    """Generate A-site density profiles
+    
+    The function takes in an A-site offset table and generate three A-site read density profiles: 
+        * A-site_profiles_nt.tab: A-site profiles at the nucleotide level
+        * A-site_profiles_nt_mapped_to_frame0.tab: transformed A-site profiles at the nucleotide level that maps all reads to Frame 0
+        * A-site_profiles_codon.tab: A-site profiles at the codon level
+    
+    Parameters
+    ------------
+    folder: str
+        The full path to the working folder 
+    species: str
+        The name of the species, "yeast", "ecoli", or other strings
+    bam_file: str
+        The full path to the input BAM file
+    annotation_file: str
+        The full path to the input CDS annotation file. For genome, the annotation file could be a .tab file with the following fields: "Gene name", "Chromosome", "Strand", "CDS Length", "Number of CDS regions", "CDS Start 1", "CDS End 1", "CDS Start 2" and "CDS End 2". Alternatively, a GFF file can also be given as input for annotations, but the script is optimized for processing GFF files for E. coli and S. cerevisiae only. For transcriptome, the annotation file could be a .tab file with the following fields: "Gene name", "Start index", "CDS Length". Header is not needed in the .tab file
+    fasta_file: str
+        The full path to the input FASTA file
+    offset_file: str
+        The full path to the input A-site offset file
+    min_frag: int
+        Min fragment size
+    max_frag: int
+        Max fragment size
+    three_prime: boolean
+       Indicator whether to quantify reads from 3' end. If True, quantify reads from 3' end. If False, quantify reads from 5' end
+    overlap: int
+        Number of nucleotides beyond the CDS region of a gene which are to be avoided to overlap with another gene
+    alignment_type: str
+        Alignment type, either "genome" or "transcriptome"
+        
+    Returns
+    --------
+    None
+    """
     # set filer logger
     set_logger(folder)
     
