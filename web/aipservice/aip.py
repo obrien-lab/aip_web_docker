@@ -719,22 +719,76 @@ def find_overlapping_genes(dict_cds_info, dict_gene, extra_len=0):
 
     return overlap_list
 
-def parse_offset_value(offset_dict, fsize, frame, shift = 0):
-    offset = None
-    try:
-        offset = int(offset_dict[fsize][frame]) - shift
-    # Fsize and frame combinations with ambigious offsets will be of type '15/18' and hence will give value error. They will made offset=0
-    except ValueError:
-        logger.warn = 'Ambigious offset provided for generating A-site profiles. Fragment size: %d, frame: %d, offset: %s. Skip.' % (fsize, frame, offset_dict[fsize][frame])
-    except IndexError:
-        logger.warn = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
-    except:
-        logger.warn = 'Error when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
-        
-    return offset
+def parse_offset_values(offset_dict, frag_min, frag_max):
+    offsets = {}
+    for fsize in range(frag_min, frag_max+1):
+        offsets[fsize] = {}
+        for frame in range(3):
+            # Fsize and frame combinations with ambigious offsets will be of type '15/18' and hence will give value error. They will be assigned None.
+            offsets[fsize][frame] = None
+            try:
+                offsets[fsize][frame] = int(offset_dict[fsize][frame])
+            except ValueError:
+                logger.warn = 'Ambigious offset provided for generating A-site profiles. Fragment size: %d, frame: %d, offset: %s. Skip.' % (fsize, frame, offset_dict[fsize][frame])
+            except IndexError:
+                logger.warn = 'IndexError when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
+            except:
+                logger.warn = 'Error when getting offsets in generating A-site profiles. Fragment size: %d, frame: %d. Skip.' % (fsize, frame)
 
-def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_prime, map_frame0):
-    # Current support only for quantified read counts from 5' end. Offset from 3' end can be implemented.
+    return offsets
+
+
+def generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets, dict_len, map_frame0):
+    # Now we generate the A-site profiles according to offsets for specific fragment size and frames
+    asite_dict = {}
+    for fsize in range(frag_min, frag_max+1):
+        for gene in read_count_dict[fsize]:
+            if gene not in asite_dict:
+                asite_dict[gene] = {}
+            asite = [0] * dict_len[gene]
+            for pos in sorted(read_count_dict[fsize][gene]):
+                # First step is to get the frame of the nucleotide position. Have to careful before the start position
+                if pos > 0:
+                    frame = pos % 3 - 1  # 0 ,1 ,-1
+                if pos < 0:
+                    frame = (pos + 1) % 3 - 1  # 0,1,-1
+                # the frame 2 is where we get the value of -1
+                if frame == -1:
+                    frame = 2
+                
+                offset = offsets[fsize][frame]
+
+                if three_prime:
+                    if offset:
+                        # Only those pos after length of CDS matter when offseted map to a position in CDS
+                        if 0 < pos - offset - 1 < len(asite):
+                            # -1 because the Asite profile is a list with index 0
+                            asite[pos - offset - 1] += read_count_dict[fsize][gene][pos]
+                else:
+                    if offset:
+                        # Only those pos before 0 matter when offseted map to a position in CDS
+                        if pos < 0 <= pos+offset < len(asite):
+                            asite[pos+offset] += read_count_dict[fsize][gene][pos]
+                        elif pos > 0 and pos+offset-1 < len(asite):
+                            # -1 because the Asite profile is a list with index 0
+                            asite[pos+offset-1] += read_count_dict[fsize][gene][pos]
+            # This dictionary will store for every gene the A-site profiles for each fragment size
+            asite_dict[gene][fsize] = asite
+            
+    asite_profiles = {}
+    for gene in asite_dict:
+        # This adds up the read count at every position from all fragment sizes for every gene
+        asite_profiles[gene] = [sum(x) for x in zip(*asite_dict[gene].values())]
+
+    # Output file for A-site profiles
+    with open(os.path.join(folder, 'A-site_profiles_nucleotide' + map_frame0 + '.tab'), 'w') as asite_file:
+        for gene in asite_dict:
+            asite_file.write(gene + '\t' + str(dict_len[gene]) + '\t' + ','.join(map(str, asite_profiles[gene])) + '\n')
+            
+    return asite_profiles
+            
+
+def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_prime):
 
     dict_len = {}
     read_count_dict = {}
@@ -760,49 +814,22 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
                     else:
                         read_count_dict[fsize][gene][i] = reads_list[i - start_index]
     logger.info('Parsed the CDS read counts.')
-
-    # Now we generate the A-site profiles according to offsets for specific fragment size and frames
-    asite_dict = {}
-    for fsize in range(frag_min, frag_max+1):
-        for gene in read_count_dict[fsize]:
-            if gene not in asite_dict:
-                asite_dict[gene] = {}
-            asite = [0] * dict_len[gene]
-            for pos in sorted(read_count_dict[fsize][gene]):
-                # First step is to get the frame of the nucleotide position. Have to careful before the start position
-                if pos > 0:
-                    frame = pos % 3 - 1  # 0 ,1 ,-1
-                if pos < 0:
-                    frame = (pos + 1) % 3 - 1  # 0,1,-1
-                # the frame 2 is where we get the value of -1
-                if frame == -1:
-                    frame = 2
-                
-                offset = parse_offset_value(offsets, fsize, frame)
-
-                if three_prime:
-                    if offset:
-                        # Only those pos after length of CDS matter when offseted map to a position in CDS
-                        if 0 < pos - offset - 1 < len(asite):
-                            # -1 because the Asite profile is a list with index 0
-                            asite[pos - offset - 1] += read_count_dict[fsize][gene][pos]
-                else:
-                    if offset:
-                        # Only those pos before 0 matter when offseted map to a position in CDS
-                        if pos < 0 <= pos+offset < len(asite):
-                            asite[pos+offset] += read_count_dict[fsize][gene][pos]
-                        elif pos > 0 and pos+offset-1 < len(asite):
-                            # -1 because the Asite profile is a list with index 0
-                            asite[pos+offset-1] += read_count_dict[fsize][gene][pos]
-            # This dictionary will store for every gene the A-site profiles for each fragment size
-            asite_dict[gene][fsize] = asite
-
-    # Output file for A-site profiles
-    with open(os.path.join(folder, 'A-site_profiles' + map_frame0 + '.tab'), 'w') as asite_file:
+    
+    # generate A-site_profiles_nucleotide.tab
+    map_frame0 = ""
+    offsets = parse_offset_values(offsets, frag_min, frag_max)
+    asite_profiles = generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets, dict_len, map_frame0)
+    
+    # generate A-site_profiles_nucleotide_mapped_to_frame0.tab
+    map_frame0 = "_mapped_to_frame0"
+    offsets_map_frame0 = {fsize: {0: f[0], 1: f[1] - 1 if f[1] else None, 2: f[2] - 2 if f[2] else None} for f in offsets.values()}
+    generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets_map_frame0, dict_len, map_frame0)
+    
+    # generate A-site_profiles_codon.tab
+    with open(os.path.join(folder, 'A-site_profiles_codon.tab'), 'w') as asite_file:
         for gene in asite_dict:
-            # This adds up the read count at every position from all fragment sizes for every gene
-            asite_profile = [sum(x) for x in zip(*asite_dict[gene].values())]
-            asite_file.write(gene + '\t' + str(dict_len[gene]) + '\t' + ','.join(map(str, asite_profile)) + '\n')
+            reads_codon = sum(asite_profiles[gene][i:i+3]) for i in range(0, dict_len[gene], 3)
+            asite_file.write(gene + '\t' + str(dict_len[gene]/3) + '\t' + ','.join(map(str, reads_codon)) + '\n')
     
 
 # Using cutoffs for all possible frag sizes
@@ -1648,18 +1675,6 @@ def set_logger(folder):
     logger.setLevel(logging.DEBUG)
     
 
-# map offset table to frame 0 by subtracting 1 from frame 1 and 2 from frame 2 
-def map_to_frame0(offset_dict):
-    try: 
-        offset_dict_frame0 = {fsize: {frame: parse_offset_value(offset_dict, fsize, frame, frame) for frame in range(3)} for fsize in offset_dict}
-    except:
-        message = "Error translating the offset table to frame 0."
-        logger.error(message)
-        raise Exception(message)
-        
-    return offset_dict_frame0
-    
-
 def run_offset(folder, 
             species,
             bam_file, 
@@ -1743,9 +1758,7 @@ def run_offset(folder,
 
         if get_profile:
             offset_dict = {fsize: {frame: offset_dict[fsize][frame]["off"] for frame in offset_dict[fsize]} for fsize in offset_dict}
-            generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime, "")
-            offset_dict_frame0 = map_to_frame0(offset_dict)
-            generate_asite_profiles(min_frag, max_frag, offset_dict_frame0, scratch, folder, three_prime, "_mapped_to_frame0")
+            generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime)
         
         # remove the scratch folder
         shutil.rmtree(scratch)
@@ -1778,8 +1791,8 @@ def run_profile(folder,
     """Generate A-site density profiles
     
     The function takes in an A-site offset table and generate three A-site read density profiles: 
-        * A-site_profiles_nt.tab: A-site profiles at the nucleotide level
-        * A-site_profiles_nt_mapped_to_frame0.tab: transformed A-site profiles at the nucleotide level that maps all reads to Frame 0
+        * A-site_profiles_nucleotide.tab: A-site profiles at the nucleotide level
+        * A-site_profiles_nucleotide_mapped_to_frame0.tab: transformed A-site profiles at the nucleotide level that maps all reads to Frame 0
         * A-site_profiles_codon.tab: A-site profiles at the codon level
     
     Parameters
@@ -1834,9 +1847,7 @@ def run_profile(folder,
             create_cds_counts_transcriptome(annotation_file, fasta_file, scratch, count_dict, mul_count_dict, total_dict, min_frag, max_frag, three_prime)
 
         offset_dict = get_offset_dict_from_file(offset_file)
-        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime, "")
-        offset_dict_frame0 = map_to_frame0(offset_dict)
-        generate_asite_profiles(min_frag, max_frag, offset_dict_frame0, scratch, folder, three_prime, "_mapped_to_frame0")
+        generate_asite_profiles(min_frag, max_frag, offset_dict, scratch, folder, three_prime)
         
         # remove the scratch folder
         shutil.rmtree(scratch)
