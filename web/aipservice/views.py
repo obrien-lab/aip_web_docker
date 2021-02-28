@@ -17,7 +17,7 @@ from .forms import *
     
 FRAMES = 3
 
-def list_files_in_folder(subfolder):
+def list_files_in_input_folder(subfolder):
     files = {}
     join = os.path.join
     exists = os.path.exists
@@ -28,6 +28,17 @@ def list_files_in_folder(subfolder):
             filenames = os.listdir(dest_sub)
             filenames.sort()
             files[filetype] = [{'filename': f, 'filepath': os.path.join(dest_sub, f) } for f in filenames]
+    return files
+
+
+def list_files_in_output_folder(subfolder):
+    dest = os.path.join(settings.MEDIA_ROOT, 'output', subfolder)
+    files = []        
+    if os.path.exists(dest):
+        filenames = os.listdir(dest)
+        filenames.sort()
+        files = [{'filename': f, 'filepath': os.path.join(dest, f) } for f in filenames]
+        files = [f for f in files if not os.path.isdir(f['filepath'])]
     return files
 
 
@@ -54,14 +65,14 @@ def get_filetype(filename):
 class UploadDataView(View):
     def get_context(self, user_id, form):
         context = {'form': form, 
-                   'default_files': list_files_in_folder('default'),
+                   'default_files': list_files_in_input_folder('default'),
                    'max_upload_size': get_max_upload_size(),
                    'max_store_days': settings.MAX_STORE_DAYS
                   }
         
         if user_id:
             my_files = {}
-            listfiles = list_files_in_folder(os.path.join('users', user_id))
+            listfiles = list_files_in_input_folder(os.path.join('users', user_id))
             for filetype, files in listfiles.items():
                 my_files[filetype] = []
                 for file in files:
@@ -182,50 +193,17 @@ class OffsetReportView(View):
     def get(self, request, task_id):
         job = get_object_or_404(AsiteOffsetsJob, task_id=task_id)
         species = job.get_species_display()
-            
-        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job.id))
-        log_path = os.path.join(folder, "aip.log")
-        if not os.path.exists(log_path):
-            log_path = None
-            
-        offset_path = os.path.join(folder, 'A-site_offsets.tab')
-        if not os.path.exists(offset_path):
-            offset_path = None
+        files = list_files_in_output_folder(str(job.id))        
         
-        perc_gene_path = os.path.join(folder, 'Perc_of_genes_for_all_offsets.tab')
-        if not os.path.exists(perc_gene_path):
-            perc_gene_path = None
-
-        profile_path = os.path.join(folder, 'A-site_profiles.tab')
-        if not os.path.exists(profile_path):
-            profile_path = None
-            
-        profile_frame0_path = os.path.join(folder, 'A-site_profiles_mapped_to_frame0.tab')
-        if not os.path.exists(profile_frame0_path):
-            profile_frame0_path = None
-        
-        return render(request, 'aipservice/offset_report.html', {"job": job, "species": species, "log_path": log_path, "offset_path": offset_path, "perc_gene_path": perc_gene_path, "profile_path": profile_path, "profile_frame0_path": profile_frame0_path})
+        return render(request, 'aipservice/offset_report.html', {"job": job, "species": species, "files": files})
     
 class ProfileReportView(View):
     def get(self, request, task_id):    
         job = get_object_or_404(AsiteProfilesJob, task_id=task_id)
         species = job.get_species_display()
+        files = list_files_in_output_folder(str(job.id))
             
-        folder = os.path.join(settings.MEDIA_ROOT, "output", str(job.id))
-        
-        log_path = os.path.join(folder, "aip.log")
-        if not os.path.exists(log_path):
-            log_path = None
-        
-        profile_path = os.path.join(folder, 'A-site_profiles.tab')
-        if not os.path.exists(profile_path):
-            profile_path = None
-            
-        profile_frame0_path = os.path.join(folder, 'A-site_profiles_mapped_to_frame0.tab')
-        if not os.path.exists(profile_frame0_path):
-            profile_frame0_path = None
-            
-        return render(request, 'aipservice/profile_report.html', {"job": job, "species": species, "log_path": log_path, "profile_path": profile_path, "profile_frame0_path": profile_frame0_path})
+        return render(request, 'aipservice/profile_report.html', {"job": job, "species": species, "files": files})
     
 class JobListView(View):
     def get(self, request):
