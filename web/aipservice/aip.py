@@ -827,7 +827,7 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
     
     # generate A-site_profiles_codon.tab
     with open(os.path.join(folder, 'A-site_profiles_codon.tab'), 'w') as asite_file:
-        for gene in asite_dict:
+        for gene in asite_profiles:
             reads_codon = np.add.reduceat(asite_profiles[gene], np.arange(0, dict_len[gene], 3))
             asite_file.write(gene + '\t' + str(dict_len[gene]/3) + '\t' + ','.join(map(str, reads_codon)) + '\n')
     
