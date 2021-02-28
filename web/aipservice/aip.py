@@ -738,7 +738,7 @@ def parse_offset_values(offset_dict, frag_min, frag_max):
     return offsets
 
 
-def generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets, dict_len, map_frame0):
+def generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets, dict_len, three_prime, map_frame0):
     # Now we generate the A-site profiles according to offsets for specific fragment size and frames
     asite_dict = {}
     for fsize in range(frag_min, frag_max+1):
@@ -818,12 +818,12 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
     # generate A-site_profiles_nucleotide.tab
     map_frame0 = ""
     offsets = parse_offset_values(offsets, frag_min, frag_max)
-    asite_profiles = generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets, dict_len, map_frame0)
+    asite_profiles = generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets, dict_len, three_prime, map_frame0)
     
     # generate A-site_profiles_nucleotide_mapped_to_frame0.tab
     map_frame0 = "_mapped_to_frame0"
     offsets_map_frame0 = {fsize: {0: f[0], 1: f[1] - 1 if f[1] else None, 2: f[2] - 2 if f[2] else None} for f in offsets.values()}
-    generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets_map_frame0, dict_len, map_frame0)
+    generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets_map_frame0, dict_len, three_prime, map_frame0)
     
     # generate A-site_profiles_codon.tab
     with open(os.path.join(folder, 'A-site_profiles_codon.tab'), 'w') as asite_file:
