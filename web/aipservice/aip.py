@@ -822,7 +822,7 @@ def generate_asite_profiles(frag_min, frag_max, offsets, scratch, folder, three_
     
     # generate A-site_profiles_nucleotide_mapped_to_frame0.tab
     map_frame0 = "_mapped_to_frame0"
-    offsets_map_frame0 = {fsize: {0: f[0], 1: f[1] - 1 if f[1] else None, 2: f[2] - 2 if f[2] else None} for f in offsets.values()}
+    offsets_map_frame0 = {fsize: {0: value[0], 1: value[1] - 1 if value[1] else None, 2: value[2] - 2 if value[2] else None} for fsize, value in offsets.items()}
     generate_asite_profiles_nucleotide(folder, frag_min, frag_max, read_count_dict, offsets_map_frame0, dict_len, three_prime, map_frame0)
     
     # generate A-site_profiles_codon.tab
